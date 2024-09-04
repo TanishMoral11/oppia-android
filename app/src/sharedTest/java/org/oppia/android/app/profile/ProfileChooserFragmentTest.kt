@@ -119,6 +119,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 import javax.inject.Inject
 import javax.inject.Singleton
+import org.oppia.android.testing.OppiaTestRule
 
 /** Tests for [ProfileChooserFragment]. */
 @RunWith(AndroidJUnit4::class)
@@ -131,8 +132,8 @@ class ProfileChooserFragmentTest {
   @get:Rule
   val initializeDefaultLocaleRule = InitializeDefaultLocaleRule()
 
-//  @get:Rule
-//  val oppiaTestRule = OppiaTestRule()
+  @get:Rule
+  val oppiaTestRule = OppiaTestRule()
 
   private val activityTestRule: ActivityTestRule<ProfileChooserActivity> = ActivityTestRule(
     ProfileChooserActivity::class.java, /* initialTouchMode= */ true, /* launchActivity= */ false
@@ -679,13 +680,12 @@ class ProfileChooserFragmentTest {
   }
 
   @Test
+  @Config(qualifiers = "land")
   fun testFragment_enableOnboardingV2_landscapeMode_checkScrollArrowsAreDisplayed() {
     TestPlatformParameterModule.forceEnableOnboardingFlowV2(true)
     profileTestHelper.addOnlyAdminProfile()
     profileTestHelper.addMoreProfiles(8)
     launch(ProfileChooserActivity::class.java).use {
-      testCoroutineDispatchers.runCurrent()
-      orientationLandscape()
       testCoroutineDispatchers.runCurrent()
       onView(withId(R.id.profile_list_scroll_left)).check(matches(isDisplayed()))
       onView(withId(R.id.profile_list_scroll_right)).check(matches(isDisplayed()))
@@ -693,13 +693,12 @@ class ProfileChooserFragmentTest {
   }
 
   @Test
+  @Config(qualifiers = "land")
   fun testFragment_enableOnboardingV2_landscape_shortList_checkScrollArrowsAreNotDisplayed() {
     TestPlatformParameterModule.forceEnableOnboardingFlowV2(true)
     profileTestHelper.addOnlyAdminProfile()
     profileTestHelper.addMoreProfiles(2)
     launch(ProfileChooserActivity::class.java).use {
-      testCoroutineDispatchers.runCurrent()
-      orientationLandscape()
       testCoroutineDispatchers.runCurrent()
       onView(withId(R.id.profile_list_scroll_left)).check(
         matches(withEffectiveVisibility(Visibility.GONE))
@@ -786,14 +785,14 @@ class ProfileChooserFragmentTest {
   }
 
   @Test
-  fun testFragment_enableOnboardingV2_afterVisitingHomeActivity_configChange_showsJustNowText() {
+  @Config(qualifiers = "land")
+  fun testFragment_enableOnboardingV2_landscapeMode_afterVisitingHome_showsJustNowText() {
     TestPlatformParameterModule.forceEnableOnboardingFlowV2(true)
     // Note that the auto-log in here is simulating HomeActivity having been visited before (i.e.
     // that a profile was previously logged in).
-    profileTestHelper.initializeProfiles(autoLogIn = true)
-    launch<ProfileChooserActivity>(createProfileChooserActivityIntent()).use {
-
-      onView(isRoot()).perform(orientationLandscape())
+    profileTestHelper.addOnlyAdminProfile()
+    profileTestHelper.addMoreProfiles(8)
+    launch(ProfileChooserActivity::class.java).use {
       testCoroutineDispatchers.runCurrent()
       onView(
         atPositionOnView(
