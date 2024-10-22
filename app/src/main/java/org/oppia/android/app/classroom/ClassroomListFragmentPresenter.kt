@@ -51,14 +51,12 @@ import org.oppia.android.app.model.ClassroomSummary
 import org.oppia.android.app.model.LessonThumbnail
 import org.oppia.android.app.model.LessonThumbnailGraphic
 import org.oppia.android.app.model.Profile
-import org.oppia.android.app.model.ProfileId
 import org.oppia.android.app.model.ProfileType
 import org.oppia.android.app.model.TopicSummary
 import org.oppia.android.app.translation.AppLanguageResourceHandler
 import org.oppia.android.app.utility.datetime.DateTimeUtil
 import org.oppia.android.databinding.ClassroomListFragmentBinding
 import org.oppia.android.domain.classroom.ClassroomController
-import org.oppia.android.domain.onboarding.AppStartupStateController
 import org.oppia.android.domain.oppialogger.OppiaLogger
 import org.oppia.android.domain.oppialogger.analytics.AnalyticsController
 import org.oppia.android.domain.profile.ProfileManagementController
@@ -91,7 +89,6 @@ class ClassroomListFragmentPresenter @Inject constructor(
   private val dateTimeUtil: DateTimeUtil,
   private val translationController: TranslationController,
   private val machineLocale: OppiaLocale.MachineLocale,
-  private val appStartupStateController: AppStartupStateController,
   private val analyticsController: AnalyticsController,
   @EnableOnboardingFlowV2
   private val enableOnboardingFlowV2: PlatformParameterValue<Boolean>
@@ -170,8 +167,8 @@ class ClassroomListFragmentPresenter @Inject constructor(
       }
     )
 
-    if (enableOnboardingFlowV2.value) {
-      subscribeToProfileResult(profileId)
+    profileManagementController.getProfile(profileId).toLiveData().observe(fragment) {
+      processProfileResult(it)
     }
 
     return binding.root
@@ -274,17 +271,16 @@ class ClassroomListFragmentPresenter @Inject constructor(
     }
   }
 
-  private fun subscribeToProfileResult(profileId: ProfileId) {
-    profileManagementController.getProfile(profileId).toLiveData().observe(fragment) {
-      processProfileResult(it)
-    }
-  }
-
   private fun processProfileResult(result: AsyncResult<Profile>) {
     when (result) {
       is AsyncResult.Success -> {
         val profile = result.value
-        handleProfileOnboardingState(profile)
+        if (enableOnboardingFlowV2.value) {
+          if (!profile.completedProfileOnboarding) {
+            profileManagementController.markProfileOnboardingEnded(profileId)
+          }
+        }
+
         handleBackPress(profile.profileType)
       }
       is AsyncResult.Failure -> {
@@ -296,14 +292,6 @@ class ClassroomListFragmentPresenter @Inject constructor(
       is AsyncResult.Pending -> {
         Profile.getDefaultInstance()
       }
-    }
-  }
-
-  private fun handleProfileOnboardingState(profile: Profile) {
-    // App onboarding is completed by the first profile on the app(SOLE_LEARNER or SUPERVISOR),
-    // while profile onboarding is completed by each profile.
-    if (!profile.completedProfileOnboarding) {
-      profileManagementController.markProfileOnboardingEnded(profileId)
     }
   }
 
@@ -320,6 +308,9 @@ class ClassroomListFragmentPresenter @Inject constructor(
       object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
           exitProfileListener.exitProfile(profileType)
+          // The dispatcher can hold a reference to the host
+          // so we need to null it out to prevent memory leaks.
+          this.remove()
         }
       }
     )

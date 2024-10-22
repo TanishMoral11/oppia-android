@@ -110,24 +110,23 @@ class HomeFragmentPresenter @Inject constructor(
       it.viewModel = homeViewModel
     }
 
-    if (enableOnboardingFlowV2.value) {
-      subscribeToProfileResult(profileId)
-    }
-
-    return binding.root
-  }
-
-  private fun subscribeToProfileResult(profileId: ProfileId) {
     profileManagementController.getProfile(profileId).toLiveData().observe(fragment) {
       processProfileResult(it)
     }
+
+    return binding.root
   }
 
   private fun processProfileResult(result: AsyncResult<Profile>) {
     when (result) {
       is AsyncResult.Success -> {
         val profile = result.value
-        handleProfileOnboardingState(profile)
+        if (enableOnboardingFlowV2.value) {
+          if (!profile.completedProfileOnboarding) {
+            profileManagementController.markProfileOnboardingEnded(profileId)
+          }
+        }
+
         handleBackPress(profile.profileType)
       }
       is AsyncResult.Failure -> {
@@ -137,14 +136,6 @@ class HomeFragmentPresenter @Inject constructor(
       is AsyncResult.Pending -> {
         Profile.getDefaultInstance()
       }
-    }
-  }
-
-  private fun handleProfileOnboardingState(profile: Profile) {
-    // App onboarding is completed by the first profile on the app(SOLE_LEARNER or SUPERVISOR),
-    // while profile onboarding is completed by each profile.
-    if (!profile.completedProfileOnboarding) {
-      profileManagementController.markProfileOnboardingEnded(profileId)
     }
   }
 
@@ -222,6 +213,9 @@ class HomeFragmentPresenter @Inject constructor(
       object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
           exitProfileListener.exitProfile(profileType)
+          // The dispatcher can hold a reference to the host
+          // so we need to null it out to prevent memory leaks.
+          this.remove()
         }
       }
     )
