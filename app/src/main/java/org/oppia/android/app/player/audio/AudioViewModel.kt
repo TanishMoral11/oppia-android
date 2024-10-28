@@ -66,9 +66,11 @@ class AudioViewModel @Inject constructor(
     processPlayStatusLiveData()
   }
 
-  fun setStateAndExplorationId(newState: State, id: String) {
-    state = newState
-    explorationId = id
+  fun setStateAndExplorationId(newState: State?, id: String?) {
+    if (newState != null && id != null) {
+      state = newState
+      explorationId = id
+    }
   }
 
   fun loadMainContentAudio(allowAutoPlay: Boolean, reloadingContent: Boolean) {
@@ -88,6 +90,8 @@ class AudioViewModel @Inject constructor(
    * @param allowAutoPlay If false, audio is guaranteed not to be autoPlayed.
    */
   private fun loadAudio(contentId: String?, allowAutoPlay: Boolean, reloadingMainContent: Boolean) {
+    // Check if 'state' is initialized before proceeding.
+    if (!::state.isInitialized) return
     val targetContentId = contentId ?: state.content.contentId
     val voiceoverMapping =
       state.recordedVoiceoversMap[targetContentId] ?: VoiceoverMapping.getDefaultInstance()
