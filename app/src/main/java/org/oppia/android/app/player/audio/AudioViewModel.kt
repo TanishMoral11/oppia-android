@@ -1,5 +1,6 @@
 package org.oppia.android.app.player.audio
 
+import android.util.Log
 import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import androidx.lifecycle.LiveData
@@ -67,11 +68,14 @@ class AudioViewModel @Inject constructor(
   }
 
   fun setStateAndExplorationId(newState: State?, id: String?) {
-    if (newState != null && id != null) {
-      state = newState
-      explorationId = id
+    if (newState == null || id == null) {
+      Log.e("AudioViewModel", "Failed to set state or id - parameters are null")
+      return
     }
+    state = newState
+    explorationId = id
   }
+
 
   fun loadMainContentAudio(allowAutoPlay: Boolean, reloadingContent: Boolean) {
     hasFeedback = false
@@ -90,8 +94,11 @@ class AudioViewModel @Inject constructor(
    * @param allowAutoPlay If false, audio is guaranteed not to be autoPlayed.
    */
   private fun loadAudio(contentId: String?, allowAutoPlay: Boolean, reloadingMainContent: Boolean) {
-    // Check if 'state' is initialized before proceeding.
-    if (!::state.isInitialized) return
+    if (!::state.isInitialized || !::explorationId.isInitialized) {
+      Log.w("AudioViewModel", "Cannot load audio: state or explorationId is not initialized.")
+      return
+    }
+
     val targetContentId = contentId ?: state.content.contentId
     val voiceoverMapping =
       state.recordedVoiceoversMap[targetContentId] ?: VoiceoverMapping.getDefaultInstance()
