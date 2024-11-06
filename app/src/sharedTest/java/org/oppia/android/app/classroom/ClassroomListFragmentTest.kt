@@ -193,6 +193,7 @@ class ClassroomListFragmentTest {
   fun tearDown() {
     TestPlatformParameterModule.reset()
     testCoroutineDispatchers.unregisterIdlingResource()
+    scenario.close()
   }
 
   @Test
@@ -302,14 +303,13 @@ class ClassroomListFragmentTest {
   @Test
   fun testFragment_afternoonTimestamp_goodAfternoonMessageIsDisplayed_withAdminProfileName() {
     setUpTestApplicationComponent()
+    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
     fakeOppiaClock.setFakeTimeMode(FakeOppiaClock.FakeTimeMode.MODE_FIXED_FAKE_TIME)
     fakeOppiaClock.setCurrentTimeToSameDateTime(AFTERNOON_TIMESTAMP)
 
     // Refresh the welcome text content.
     logIntoAdmin()
-    testCoroutineDispatchers.runCurrent()
 
-    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
     composeRule.onNodeWithTag(WELCOME_TEST_TAG)
       .assertTextContains("Good afternoon, Admin!")
       .assertIsDisplayed()
@@ -485,15 +485,15 @@ class ClassroomListFragmentTest {
   @Test
   fun testFragment_forPromotedActivityList_hideViewAll() {
     setUpTestApplicationComponent()
+    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
     fakeOppiaClock.setFakeTimeMode(FakeOppiaClock.FakeTimeMode.MODE_UPTIME_MILLIS)
     storyProgressTestHelper.markInProgressSavedFractionsStory0Exp0(
       profileId = profileId,
       timestampOlderThanOneWeek = false
     )
+
     logIntoAdminTwice()
     testCoroutineDispatchers.runCurrent()
-
-    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
 
     composeRule.onNodeWithTag(PROMOTED_STORY_LIST_HEADER_TEST_TAG).onChildAt(1)
       .assertDoesNotExist()
@@ -674,7 +674,7 @@ class ClassroomListFragmentTest {
   @Test
   fun testFragment_markFullProgressForFractions_playRatios_displaysRecommendedStories() {
     setUpTestApplicationComponent()
-    logIntoAdminTwice()
+    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
     fakeOppiaClock.setFakeTimeMode(FakeOppiaClock.FakeTimeMode.MODE_UPTIME_MILLIS)
     storyProgressTestHelper.markInProgressSavedRatiosStory0Exp0(
       profileId = profileId,
@@ -684,8 +684,10 @@ class ClassroomListFragmentTest {
       profileId = profileId,
       timestampOlderThanOneWeek = false
     )
+
+    logIntoAdminTwice()
     testCoroutineDispatchers.runCurrent()
-    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
+
     composeRule.onNodeWithTag(PROMOTED_STORY_LIST_HEADER_TEST_TAG).onChildAt(0)
       .assertTextContains(context.getString(R.string.stories_for_you))
       .assertIsDisplayed()
@@ -764,6 +766,8 @@ class ClassroomListFragmentTest {
   @Test
   fun testFragment_markStory0OfRatiosAndTestTopics0And1Done_playTestTopicStory0_noPromotions() {
     setUpTestApplicationComponent()
+    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
+    logIntoAdminTwice()
     fakeOppiaClock.setFakeTimeMode(FakeOppiaClock.FakeTimeMode.MODE_UPTIME_MILLIS)
     storyProgressTestHelper.markCompletedRatiosStory0(
       profileId = profileId,
@@ -781,10 +785,7 @@ class ClassroomListFragmentTest {
       profileId = profileId,
       timestampOlderThanOneWeek = false
     )
-    logIntoAdminTwice()
     testCoroutineDispatchers.runCurrent()
-
-    scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
 
     composeRule.onNodeWithTag(COMING_SOON_TOPIC_LIST_HEADER_TEST_TAG)
       .assertTextContains(context.getString(R.string.coming_soon))
@@ -829,9 +830,10 @@ class ClassroomListFragmentTest {
 
   @Test
   fun testFragment_clickTopicSummary_opensTopicActivityThroughPlayIntent() {
+    Intents.init()
     setUpTestApplicationComponent()
     scenario = ActivityScenario.launch(ClassroomListActivity::class.java)
-    testCoroutineDispatchers.advanceUntilIdle()
+    testCoroutineDispatchers.runCurrent()
 
     composeRule.onNodeWithTag(CLASSROOM_LIST_TEST_TAG).onChildAt(0).performClick()
     testCoroutineDispatchers.runCurrent()
