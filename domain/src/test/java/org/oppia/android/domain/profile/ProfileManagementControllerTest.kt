@@ -87,26 +87,16 @@ import javax.inject.Singleton
 class ProfileManagementControllerTest {
   @get:Rule
   val oppiaTestRule = OppiaTestRule()
-  @Inject
-  lateinit var context: Context
-  @Inject
-  lateinit var profileTestHelper: ProfileTestHelper
-  @Inject
-  lateinit var profileManagementController: ProfileManagementController
-  @Inject
-  lateinit var testCoroutineDispatchers: TestCoroutineDispatchers
-  @Inject
-  lateinit var monitorFactory: DataProviderTestMonitor.Factory
-  @Inject
-  lateinit var machineLocale: OppiaLocale.MachineLocale
-  @field:[BackgroundDispatcher Inject]
-  lateinit var backgroundDispatcher: CoroutineDispatcher
-  @Inject
-  lateinit var fakeAnalyticsEventLogger: FakeAnalyticsEventLogger
-  @Inject
-  lateinit var loggingIdentifierController: LoggingIdentifierController
-  @Inject
-  lateinit var oppiaClock: FakeOppiaClock
+  @Inject lateinit var context: Context
+  @Inject lateinit var profileTestHelper: ProfileTestHelper
+  @Inject lateinit var profileManagementController: ProfileManagementController
+  @Inject lateinit var testCoroutineDispatchers: TestCoroutineDispatchers
+  @Inject lateinit var monitorFactory: DataProviderTestMonitor.Factory
+  @Inject lateinit var machineLocale: OppiaLocale.MachineLocale
+  @field:[BackgroundDispatcher Inject] lateinit var backgroundDispatcher: CoroutineDispatcher
+  @Inject lateinit var fakeAnalyticsEventLogger: FakeAnalyticsEventLogger
+  @Inject lateinit var loggingIdentifierController: LoggingIdentifierController
+  @Inject lateinit var oppiaClock: FakeOppiaClock
 
   private companion object {
     private val PROFILES_LIST = listOf<Profile>(
