@@ -139,8 +139,7 @@ class ClassroomListFragmentPresenter @Inject constructor(
           sender: ObservableList<HomeItemViewModel>,
           positionStart: Int,
           itemCount: Int
-        ) {
-        }
+        ) {}
 
         override fun onItemRangeInserted(
           sender: ObservableList<HomeItemViewModel>,
@@ -155,15 +154,13 @@ class ClassroomListFragmentPresenter @Inject constructor(
           fromPosition: Int,
           toPosition: Int,
           itemCount: Int
-        ) {
-        }
+        ) {}
 
         override fun onItemRangeRemoved(
           sender: ObservableList<HomeItemViewModel>,
           positionStart: Int,
           itemCount: Int
-        ) {
-        }
+        ) {}
       }
     )
 
@@ -218,8 +215,7 @@ class ClassroomListFragmentPresenter @Inject constructor(
       .indexOfFirst { it.first == AllClassroomsViewModel::class }
 
     LazyColumn(
-      modifier = Modifier
-        .testTag(CLASSROOM_LIST_SCREEN_TEST_TAG),
+      modifier = Modifier.testTag(CLASSROOM_LIST_SCREEN_TEST_TAG),
       state = listState
     ) {
       groupedItems.forEach { (type, items) ->
