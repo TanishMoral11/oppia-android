@@ -99,6 +99,7 @@ class ClassroomListFragmentPresenter @Inject constructor(
   private lateinit var classroomListViewModel: ClassroomListViewModel
   private var internalProfileId: Int = -1
   private val profileId = activity.intent.extractCurrentUserProfileId()
+  private var onBackPressedCallback: OnBackPressedCallback? = null
 
   /** Creates and returns the view for the [ClassroomListFragment]. */
   fun handleCreateView(inflater: LayoutInflater, container: ViewGroup?): View? {
@@ -299,17 +300,21 @@ class ClassroomListFragmentPresenter @Inject constructor(
   }
 
   private fun handleBackPress(profileType: ProfileType) {
-    activity.onBackPressedDispatcher.addCallback(
-      fragment,
-      object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-          exitProfileListener.exitProfile(profileType)
-          // The dispatcher can hold a reference to the host
-          // so we need to null it out to prevent memory leaks.
-          this.remove()
-        }
+    onBackPressedCallback?.remove()
+
+    onBackPressedCallback = object : OnBackPressedCallback(true) {
+      override fun handleOnBackPressed() {
+        exitProfileListener.exitProfile(profileType)
+        // The dispatcher can hold a reference to the host
+        // so we need to null it out to prevent memory leaks.
+        this.remove()
+        onBackPressedCallback = null
       }
-    )
+    }
+
+    onBackPressedCallback?.let { callback ->
+      activity.onBackPressedDispatcher.addCallback(fragment, callback)
+    }
   }
 }
 
