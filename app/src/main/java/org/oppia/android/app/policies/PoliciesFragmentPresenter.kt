@@ -1,5 +1,9 @@
 package org.oppia.android.app.policies
 
+import android.graphics.Paint
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +17,7 @@ import org.oppia.android.databinding.PoliciesFragmentBinding
 import org.oppia.android.util.parser.html.HtmlParser
 import org.oppia.android.util.parser.html.PolicyType
 import javax.inject.Inject
+import org.oppia.android.util.locale.LeftAlignedSymbolsSpan
 
 /** The presenter for [PoliciesFragment]. */
 @FragmentScope
@@ -45,6 +50,7 @@ class PoliciesFragmentPresenter @Inject constructor(
     var policyDescription = ""
     var policyWebLink = ""
 
+    // Get policy content based on the selected policy page
     if (policyPage == PolicyPage.PRIVACY_POLICY) {
       policyDescription = resourceHandler.getStringInLocale(R.string.privacy_policy_content)
       policyWebLink = resourceHandler.getStringInLocale(R.string.privacy_policy_web_link)
@@ -53,7 +59,8 @@ class PoliciesFragmentPresenter @Inject constructor(
       policyWebLink = resourceHandler.getStringInLocale(R.string.terms_of_service_web_link)
     }
 
-    binding.policyDescriptionTextView.text = htmlParserFactory.create(
+    // Parse the policy description to handle HTML and links
+    val parsedHtmlDescription = htmlParserFactory.create(
       policyOppiaTagActionListener = this,
       displayLocale = resourceHandler.getDisplayLocale()
     ).parseOppiaHtml(
@@ -62,6 +69,31 @@ class PoliciesFragmentPresenter @Inject constructor(
       supportsLinks = true,
       supportsConceptCards = false
     )
+
+    binding.policyDescriptionTextView.apply {
+      layoutDirection = View.LAYOUT_DIRECTION_LTR
+      textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+      textDirection = View.TEXT_DIRECTION_LTR
+      setSingleLine(false)
+      setMaxLines(Int.MAX_VALUE)
+    }
+
+    val spannableString = SpannableString(parsedHtmlDescription)
+
+    parsedHtmlDescription.split("\n").forEachIndexed { lineIndex, line ->
+      val lineStart = parsedHtmlDescription.indexOf(line)
+      if (line.trimStart().startsWith("•")) {
+        val bulletIndex = lineStart + line.indexOf("•")
+        spannableString.setSpan(
+          LeftAlignedSymbolsSpan(),
+          bulletIndex,
+          bulletIndex + 1,
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+      }
+    }
+
+    binding.policyDescriptionTextView.text = spannableString
 
     binding.policyWebLinkTextView.text = htmlParserFactory.create(
       gcsResourceName = "",
