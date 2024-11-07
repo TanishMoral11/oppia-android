@@ -45,6 +45,7 @@ class AudioLanguageFragmentPresenter @Inject constructor(
 ) {
   private lateinit var binding: AudioLanguageSelectionFragmentBinding
   private lateinit var selectedLanguage: OppiaLanguage
+  private lateinit var supportedLanguages: List<OppiaLanguage>
 
   /**
    * Returns a newly inflated view to render the fragment with an evaluated audio language as the
@@ -96,6 +97,7 @@ class AudioLanguageFragmentPresenter @Inject constructor(
     audioLanguageSelectionViewModel.supportedOppiaLanguagesLiveData.observe(
       fragment,
       { languages ->
+        supportedLanguages = languages
         val adapter = ArrayAdapter(
           fragment.requireContext(),
           R.layout.onboarding_language_dropdown_item,
@@ -113,17 +115,16 @@ class AudioLanguageFragmentPresenter @Inject constructor(
         AdapterView.OnItemClickListener { _, _, position, _ ->
           val selectedItem = adapter.getItem(position) as? String
           selectedItem?.let {
-            val localizedNameMap = OppiaLanguage.values().associateBy { oppiaLanguage ->
+            selectedLanguage = supportedLanguages.associateBy { oppiaLanguage ->
               appLanguageResourceHandler.computeLocalizedDisplayName(oppiaLanguage)
-            }
-            selectedLanguage = localizedNameMap[it] ?: OppiaLanguage.ENGLISH
+            }[it] ?: OppiaLanguage.ENGLISH
           }
         }
     }
 
     binding.onboardingNavigationContinue.setOnClickListener {
       updateSelectedAudioLanguage(selectedLanguage, profileId).also {
-        loginToProfile(profileId)
+        logInToProfile(profileId)
       }
     }
 
@@ -159,7 +160,7 @@ class AudioLanguageFragmentPresenter @Inject constructor(
       }
   }
 
-  private fun loginToProfile(profileId: ProfileId) {
+  private fun logInToProfile(profileId: ProfileId) {
     profileManagementController.loginToProfile(profileId).toLiveData().observe(
       fragment,
       { result ->
@@ -179,7 +180,7 @@ class AudioLanguageFragmentPresenter @Inject constructor(
     fragment.startActivity(intent)
     // Finish this activity as well as all activities immediately below it in the current
     // task so that the user cannot navigate back to the onboarding flow by pressing the
-    // back button once onboarding is complete
+    // back button once onboarding is complete.
     fragment.activity?.finishAffinity()
   }
 

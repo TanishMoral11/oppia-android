@@ -12,8 +12,6 @@ import org.oppia.android.app.model.ProfileId
 import org.oppia.android.app.options.AudioLanguageActivity
 import org.oppia.android.app.translation.AppLanguageResourceHandler
 import org.oppia.android.databinding.LearnerIntroFragmentBinding
-import org.oppia.android.domain.oppialogger.OppiaLogger
-import org.oppia.android.domain.oppialogger.analytics.AnalyticsController
 import org.oppia.android.domain.profile.ProfileManagementController
 import org.oppia.android.util.profile.CurrentUserProfileIdIntentDecorator.decorateWithUserProfileId
 import javax.inject.Inject
@@ -24,12 +22,10 @@ class IntroFragmentPresenter @Inject constructor(
   private val activity: AppCompatActivity,
   private val appLanguageResourceHandler: AppLanguageResourceHandler,
   private val profileManagementController: ProfileManagementController,
-  private val analyticsController: AnalyticsController,
-  private val oppiaLogger: OppiaLogger
 ) {
   private lateinit var binding: LearnerIntroFragmentBinding
 
-  /** Handle creation and binding of the  OnboardingLearnerIntroFragment layout. */
+  /** Handle creation and binding of the OnboardingLearnerIntroFragment layout. */
   fun handleCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
@@ -47,7 +43,7 @@ class IntroFragmentPresenter @Inject constructor(
 
     setLearnerName(profileNickname)
 
-    markProfileOnboardingStarted(profileId)
+    profileManagementController.markProfileOnboardingStarted(profileId)
 
     if (parentScreen == IntroActivityParams.ParentScreen.PROFILE_CHOOSER_SCREEN) {
       binding.onboardingStepsCount?.visibility = View.GONE
@@ -80,14 +76,5 @@ class IntroFragmentPresenter @Inject constructor(
       appLanguageResourceHandler.getStringInLocaleWithWrapping(
         R.string.onboarding_learner_intro_activity_text, profileName
       )
-  }
-
-  private fun markProfileOnboardingStarted(profileId: ProfileId) {
-    profileManagementController.markProfileOnboardingStarted(profileId)
-
-    analyticsController.logLowPriorityEvent(
-      oppiaLogger.createProfileOnboardingStartedContext(profileId),
-      profileId = profileId
-    )
   }
 }

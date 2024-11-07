@@ -87,26 +87,16 @@ import javax.inject.Singleton
 class ProfileManagementControllerTest {
   @get:Rule
   val oppiaTestRule = OppiaTestRule()
-  @Inject
-  lateinit var context: Context
-  @Inject
-  lateinit var profileTestHelper: ProfileTestHelper
-  @Inject
-  lateinit var profileManagementController: ProfileManagementController
-  @Inject
-  lateinit var testCoroutineDispatchers: TestCoroutineDispatchers
-  @Inject
-  lateinit var monitorFactory: DataProviderTestMonitor.Factory
-  @Inject
-  lateinit var machineLocale: OppiaLocale.MachineLocale
-  @field:[BackgroundDispatcher Inject]
-  lateinit var backgroundDispatcher: CoroutineDispatcher
-  @Inject
-  lateinit var fakeAnalyticsEventLogger: FakeAnalyticsEventLogger
-  @Inject
-  lateinit var loggingIdentifierController: LoggingIdentifierController
-  @Inject
-  lateinit var oppiaClock: FakeOppiaClock
+  @Inject lateinit var context: Context
+  @Inject lateinit var profileTestHelper: ProfileTestHelper
+  @Inject lateinit var profileManagementController: ProfileManagementController
+  @Inject lateinit var testCoroutineDispatchers: TestCoroutineDispatchers
+  @Inject lateinit var monitorFactory: DataProviderTestMonitor.Factory
+  @Inject lateinit var machineLocale: OppiaLocale.MachineLocale
+  @field:[BackgroundDispatcher Inject] lateinit var backgroundDispatcher: CoroutineDispatcher
+  @Inject lateinit var fakeAnalyticsEventLogger: FakeAnalyticsEventLogger
+  @Inject lateinit var loggingIdentifierController: LoggingIdentifierController
+  @Inject lateinit var oppiaClock: FakeOppiaClock
 
   private companion object {
     private val PROFILES_LIST = listOf<Profile>(
@@ -1635,7 +1625,7 @@ class ProfileManagementControllerTest {
     )
 
     val failure = monitorFactory.waitForNextFailureResult(updateProvider)
-    assertThat(failure).hasMessageThat().isEqualTo("ProfileType must be set")
+    assertThat(failure).hasMessageThat().isEqualTo("ProfileType must be set.")
   }
 
   @Test
@@ -1733,7 +1723,7 @@ class ProfileManagementControllerTest {
     )
 
     val failure = monitorFactory.waitForNextFailureResult(updateProvider)
-    assertThat(failure).hasMessageThat().isEqualTo("ProfileType must be set")
+    assertThat(failure).hasMessageThat().isEqualTo("ProfileType must be set.")
   }
 
   @Test
@@ -1833,19 +1823,27 @@ class ProfileManagementControllerTest {
   }
 
   @Test
-  fun testProfileOnboarding_markOnboardingStarted_isSuccess() {
+  fun testProfileOnboarding_markOnboardingStarted_logsStartProfileOnboardingEvent() {
     setUpTestWithOnboardingV2Enabled(true)
     addAdminProfile(name = "James", pin = "")
     val onboardingProvider = profileManagementController.markProfileOnboardingStarted(PROFILE_ID_0)
-    monitorFactory.waitForNextSuccessfulResult(onboardingProvider)
+    monitorFactory.ensureDataProviderExecutes(onboardingProvider)
+    val event = fakeAnalyticsEventLogger.getMostRecentEvent()
+    assertThat(event).hasStartProfileOnboardingContextThat {
+      hasProfileIdThat().isEqualTo(PROFILE_ID_0)
+    }
   }
 
   @Test
-  fun testProfileOnboarding_markOnboardingCompleted_isSuccess() {
+  fun testProfileOnboarding_markOnboardingCompleted_logsEndProfileOnboardingEvent() {
     setUpTestWithOnboardingV2Enabled(true)
     addAdminProfile(name = "James", pin = "")
     val onboardingProvider = profileManagementController.markProfileOnboardingEnded(PROFILE_ID_0)
-    monitorFactory.waitForNextSuccessfulResult(onboardingProvider)
+    monitorFactory.ensureDataProviderExecutes(onboardingProvider)
+    val event = fakeAnalyticsEventLogger.getMostRecentEvent()
+    assertThat(event).hasEndProfileOnboardingContextThat {
+      hasProfileIdThat().isEqualTo(PROFILE_ID_0)
+    }
   }
 
   private fun addTestProfiles() {

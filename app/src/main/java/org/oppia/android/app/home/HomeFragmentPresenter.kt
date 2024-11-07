@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import org.oppia.android.R
 import org.oppia.android.app.fragment.FragmentScope
@@ -14,7 +13,6 @@ import org.oppia.android.app.home.promotedlist.ComingSoonTopicListViewModel
 import org.oppia.android.app.home.promotedlist.PromotedStoryListViewModel
 import org.oppia.android.app.home.topiclist.AllTopicsViewModel
 import org.oppia.android.app.home.topiclist.TopicSummaryViewModel
-import org.oppia.android.app.model.AppStartupState
 import org.oppia.android.app.model.Profile
 import org.oppia.android.app.model.ProfileId
 import org.oppia.android.app.model.ProfileType
@@ -28,7 +26,6 @@ import org.oppia.android.databinding.HomeFragmentBinding
 import org.oppia.android.databinding.PromotedStoryListBinding
 import org.oppia.android.databinding.TopicSummaryViewBinding
 import org.oppia.android.databinding.WelcomeBinding
-import org.oppia.android.domain.onboarding.AppStartupStateController
 import org.oppia.android.domain.oppialogger.OppiaLogger
 import org.oppia.android.domain.oppialogger.analytics.AnalyticsController
 import org.oppia.android.domain.profile.ProfileManagementController
@@ -58,7 +55,6 @@ class HomeFragmentPresenter @Inject constructor(
   private val dateTimeUtil: DateTimeUtil,
   private val translationController: TranslationController,
   private val multiTypeBuilderFactory: BindableAdapter.MultiTypeBuilder.Factory,
-  private val appStartupStateController: AppStartupStateController,
   @EnableOnboardingFlowV2
   private val enableOnboardingFlowV2: PlatformParameterValue<Boolean>
 ) {
@@ -114,58 +110,23 @@ class HomeFragmentPresenter @Inject constructor(
       it.viewModel = homeViewModel
     }
 
-    if (enableOnboardingFlowV2.value) {
-      subscribeToProfileResult(profileId)
-    } else {
-      logAppOnboardedEvent(profileId)
-    }
-
-    return binding.root
-  }
-
-  private fun logAppOnboardedEvent(profileId: ProfileId) {
-    val startupStateProvider = appStartupStateController.getAppStartupState()
-    val liveData = startupStateProvider.toLiveData()
-    liveData.observe(
-      activity,
-      object : Observer<AsyncResult<AppStartupState>> {
-        override fun onChanged(startUpStateResult: AsyncResult<AppStartupState>?) {
-          when (startUpStateResult) {
-            null, is AsyncResult.Pending -> {
-              // Do nothing
-            }
-            is AsyncResult.Success -> {
-              liveData.removeObserver(this)
-
-              if (startUpStateResult.value.startupMode ==
-                AppStartupState.StartupMode.USER_NOT_YET_ONBOARDED
-              ) {
-                analyticsController.logAppOnboardedEvent(profileId)
-              }
-            }
-            is AsyncResult.Failure -> {
-              oppiaLogger.e(
-                "HomeFragment",
-                "Failed to retrieve app startup state"
-              )
-            }
-          }
-        }
-      }
-    )
-  }
-
-  private fun subscribeToProfileResult(profileId: ProfileId) {
     profileManagementController.getProfile(profileId).toLiveData().observe(fragment) {
       processProfileResult(it)
     }
+
+    return binding.root
   }
 
   private fun processProfileResult(result: AsyncResult<Profile>) {
     when (result) {
       is AsyncResult.Success -> {
         val profile = result.value
-        handleProfileOnboardingState(profile)
+        if (enableOnboardingFlowV2.value) {
+          if (!profile.completedProfileOnboarding) {
+            profileManagementController.markProfileOnboardingEnded(profileId)
+          }
+        }
+
         handleBackPress(profile.profileType)
       }
       is AsyncResult.Failure -> {
@@ -176,29 +137,6 @@ class HomeFragmentPresenter @Inject constructor(
         Profile.getDefaultInstance()
       }
     }
-  }
-
-  private fun handleProfileOnboardingState(profile: Profile) {
-    // App onboarding is completed by the first profile on the app(SOLE_LEARNER or SUPERVISOR),
-    // while profile onboarding is completed by each profile.
-    if (!profile.completedProfileOboarding) {
-      markProfileOnboardingEnded(profileId)
-      if (profile.profileType == ProfileType.SOLE_LEARNER ||
-        profile.profileType == ProfileType.SUPERVISOR
-      ) {
-        appStartupStateController.markOnboardingFlowCompleted()
-        logAppOnboardedEvent(profileId)
-      }
-    }
-  }
-
-  private fun markProfileOnboardingEnded(profileId: ProfileId) {
-    profileManagementController.markProfileOnboardingEnded(profileId)
-
-    analyticsController.logLowPriorityEvent(
-      oppiaLogger.createProfileOnboardingEndedContext(profileId),
-      profileId = profileId
-    )
   }
 
   private fun createRecyclerViewAdapter(): BindableAdapter<HomeItemViewModel> {
@@ -275,6 +213,9 @@ class HomeFragmentPresenter @Inject constructor(
       object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
           exitProfileListener.exitProfile(profileType)
+          // The dispatcher can hold a reference to the host
+          // so we need to null it out to prevent memory leaks.
+          this.remove()
         }
       }
     )

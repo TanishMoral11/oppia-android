@@ -76,7 +76,6 @@ import org.oppia.android.util.caching.AssetModule
 import org.oppia.android.util.caching.testing.CachingTestModule
 import org.oppia.android.util.gcsresource.GcsResourceModule
 import org.oppia.android.util.locale.LocaleProdModule
-import org.oppia.android.util.logging.EventLoggingConfigurationModule
 import org.oppia.android.util.logging.LoggerModule
 import org.oppia.android.util.logging.SyncStatusModule
 import org.oppia.android.util.logging.firebase.FirebaseLogUploaderModule
@@ -152,6 +151,19 @@ class TextInputLayoutBindingAdaptersTest {
     }
   }
 
+  @Test
+  fun testBindingAdapters_setSelection_arabicLanguage_setsSelectionCorrectly() {
+    launchActivity().use { scenario ->
+      scenario?.onActivity { activity ->
+        val testView: AutoCompleteTextView = activity.findViewById(R.id.test_autocomplete_view)
+        TextInputLayoutBindingAdapters.setLanguageSelection(testView, OppiaLanguage.ARABIC, true)
+        assertThat(testView.text.toString()).isEqualTo(
+          context.getString(R.string.arabic_localized_language_name)
+        )
+      }
+    }
+  }
+
   private fun launchActivity():
     ActivityScenario<TextInputLayoutBindingAdaptersTestActivity>? {
       val scenario = ActivityScenario.launch<TextInputLayoutBindingAdaptersTestActivity>(
@@ -192,7 +204,7 @@ class TextInputLayoutBindingAdaptersTest {
       MathEquationInputModule::class, SplitScreenInteractionModule::class,
       LoggingIdentifierModule::class, ApplicationLifecycleModule::class,
       SyncStatusModule::class, MetricLogSchedulerModule::class, TestingBuildFlavorModule::class,
-      EventLoggingConfigurationModule::class, ActivityRouterModule::class,
+      ActivityRouterModule::class,
       CpuPerformanceSnapshotterModule::class, ExplorationProgressModule::class,
       TestAuthenticationModule::class
     ]

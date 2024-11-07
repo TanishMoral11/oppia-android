@@ -13,16 +13,16 @@ class OnboardingAppLanguageViewModel @Inject constructor() : ObservableViewModel
   private val _languageSelectionLiveData = MutableLiveData<OppiaLanguage>()
 
   /** Get the list of app supported languages to be displayed in the language dropdown. */
-  val supportedAppLanguagesList: LiveData<List<String>> get() = _supportedAppLanguagesList
-  private val _supportedAppLanguagesList = MutableLiveData<List<String>>()
+  val supportedAppLanguagesList: LiveData<List<OppiaLanguage>> get() = _supportedAppLanguagesList
+  private val _supportedAppLanguagesList = MutableLiveData<List<OppiaLanguage>>()
 
   /** Sets the app language selection. */
-  fun setSystemLanguageLivedata(language: OppiaLanguage) {
+  fun setSelectedLanguageLivedata(language: OppiaLanguage) {
     _languageSelectionLiveData.value = language
   }
 
   /** Sets the list of app supported languages to be displayed in the language dropdown. */
-  fun setSupportedAppLanguages(languageList: List<String>) {
+  fun setSupportedAppLanguages(languageList: List<OppiaLanguage>) {
     _supportedAppLanguagesList.value = languageList
   }
 }
