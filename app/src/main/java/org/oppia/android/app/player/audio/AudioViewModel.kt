@@ -20,7 +20,6 @@ import org.oppia.android.util.gcsresource.DefaultResourceBucketName
 import org.oppia.android.util.locale.OppiaLocale
 import java.util.Locale
 import javax.inject.Inject
-import org.oppia.android.domain.oppialogger.OppiaLogger
 
 /** [ObservableViewModel] for audio-player state. */
 @FragmentScope
@@ -28,8 +27,7 @@ class AudioViewModel @Inject constructor(
   private val audioPlayerController: AudioPlayerController,
   @DefaultResourceBucketName private val gcsResource: String,
   private val machineLocale: OppiaLocale.MachineLocale,
-  private val resourceHandler: AppLanguageResourceHandler,
-  private val oppiaLogger: OppiaLogger,
+  private val resourceHandler: AppLanguageResourceHandler
 ) : ObservableViewModel() {
 
   private lateinit var state: State
