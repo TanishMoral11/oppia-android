@@ -20,6 +20,7 @@ import org.oppia.android.util.gcsresource.DefaultResourceBucketName
 import org.oppia.android.util.locale.OppiaLocale
 import java.util.Locale
 import javax.inject.Inject
+import org.oppia.android.domain.oppialogger.OppiaLogger
 
 /** [ObservableViewModel] for audio-player state. */
 @FragmentScope
@@ -27,7 +28,8 @@ class AudioViewModel @Inject constructor(
   private val audioPlayerController: AudioPlayerController,
   @DefaultResourceBucketName private val gcsResource: String,
   private val machineLocale: OppiaLocale.MachineLocale,
-  private val resourceHandler: AppLanguageResourceHandler
+  private val resourceHandler: AppLanguageResourceHandler,
+  private val oppiaLogger: OppiaLogger,
 ) : ObservableViewModel() {
 
   private lateinit var state: State
@@ -67,15 +69,10 @@ class AudioViewModel @Inject constructor(
     processPlayStatusLiveData()
   }
 
-  fun setStateAndExplorationId(newState: State?, id: String?) {
-    if (newState == null || id == null) {
-      Log.e("AudioViewModel", "Failed to set state or id - parameters are null")
-      return
-    }
+  fun setStateAndExplorationId(newState: State, id: String) {
     state = newState
     explorationId = id
   }
-
 
   fun loadMainContentAudio(allowAutoPlay: Boolean, reloadingContent: Boolean) {
     hasFeedback = false
@@ -94,12 +91,12 @@ class AudioViewModel @Inject constructor(
    * @param allowAutoPlay If false, audio is guaranteed not to be autoPlayed.
    */
   private fun loadAudio(contentId: String?, allowAutoPlay: Boolean, reloadingMainContent: Boolean) {
-    if (!::state.isInitialized || !::explorationId.isInitialized) {
-      Log.w("AudioViewModel", "Cannot load audio: state or explorationId is not initialized.")
-      return
+    val targetContentId = when {
+      !contentId.isNullOrEmpty() -> contentId
+      ::state.isInitialized -> state.content.contentId
+      else -> ""
     }
 
-    val targetContentId = contentId ?: state.content.contentId
     val voiceoverMapping =
       state.recordedVoiceoversMap[targetContentId] ?: VoiceoverMapping.getDefaultInstance()
 
