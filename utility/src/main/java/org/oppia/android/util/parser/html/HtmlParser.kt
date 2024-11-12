@@ -32,7 +32,8 @@ class HtmlParser private constructor(
   private val cacheLatexRendering: Boolean,
   customOppiaTagActionListener: CustomOppiaTagActionListener?,
   policyOppiaTagActionListener: PolicyOppiaTagActionListener?,
-  displayLocale: OppiaLocale.DisplayLocale
+  displayLocale: OppiaLocale.DisplayLocale,
+  private val supportLtr: Boolean = false
 ) {
   private val conceptCardTagHandler by lazy {
     ConceptCardTagHandler(
@@ -55,11 +56,11 @@ class HtmlParser private constructor(
       consoleLogger
     )
   }
-  private val bulletTagHandler by lazy { LiTagHandler(context, displayLocale) }
+  private val bulletTagHandler by lazy { LiTagHandler(context, displayLocale, supportLtr) }
   private val imageTagHandler by lazy { ImageTagHandler(consoleLogger) }
 
   private val isRtl by lazy {
-    displayLocale.getLayoutDirection() == ViewCompat.LAYOUT_DIRECTION_RTL
+    (displayLocale.getLayoutDirection() == ViewCompat.LAYOUT_DIRECTION_RTL) && !supportLtr
   }
 
   /**
@@ -78,6 +79,7 @@ class HtmlParser private constructor(
     supportsLinks: Boolean = false,
     supportsConceptCards: Boolean = false
   ): Spannable {
+
     var htmlContent = rawString
 
     // Canvas does not support RTL, it always starts from left to right in RTL due to which compound drawables are
@@ -123,17 +125,11 @@ class HtmlParser private constructor(
     }
 
     val imageGetter = urlImageParserFactory?.create(
-      htmlContentTextView,
-      gcsResourceName,
-      entityType,
-      entityId,
-      imageCenterAlign
+      htmlContentTextView, gcsResourceName, entityType, entityId, imageCenterAlign
     )
 
     val htmlSpannable = CustomHtmlContentHandler.fromHtml(
-      htmlContent,
-      imageGetter,
-      computeCustomTagHandlers(supportsConceptCards, htmlContentTextView)
+      htmlContent, imageGetter, computeCustomTagHandlers(supportsConceptCards, htmlContentTextView)
     )
 
     val urlPattern = Patterns.WEB_URL
@@ -228,43 +224,22 @@ class HtmlParser private constructor(
       entityId: String,
       imageCenterAlign: Boolean,
       customOppiaTagActionListener: CustomOppiaTagActionListener? = null,
-      displayLocale: OppiaLocale.DisplayLocale
+      displayLocale: OppiaLocale.DisplayLocale,
+      supportLtr: Boolean = false
     ): HtmlParser {
       return HtmlParser(
-        context = context,
-        urlImageParserFactory = urlImageParserFactory,
-        gcsResourceName = gcsResourceName,
-        entityType = entityType,
-        entityId = entityId,
-        imageCenterAlign = imageCenterAlign,
-        consoleLogger = consoleLogger,
+        context,
+        urlImageParserFactory,
+        gcsResourceName,
+        entityType,
+        entityId,
+        imageCenterAlign,
+        consoleLogger,
         cacheLatexRendering = enableCacheLatexRendering.value,
-        customOppiaTagActionListener = customOppiaTagActionListener,
-        policyOppiaTagActionListener = null,
-        displayLocale = displayLocale
-      )
-    }
-
-    /**
-     * Returns a new [HtmlParser] with the empty entity type and ID for loading images,
-     * doesn't require GCS properties and imageCenterAlign set to false
-     * optionally specified [CustomOppiaTagActionListener] for handling custom Oppia tag events.
-     */
-    fun create(
-      displayLocale: OppiaLocale.DisplayLocale
-    ): HtmlParser {
-      return HtmlParser(
-        context = context,
-        urlImageParserFactory = urlImageParserFactory,
-        gcsResourceName = "",
-        entityType = "",
-        entityId = "",
-        imageCenterAlign = false,
-        consoleLogger = consoleLogger,
-        cacheLatexRendering = enableCacheLatexRendering.value,
-        customOppiaTagActionListener = null,
-        policyOppiaTagActionListener = null,
-        displayLocale = displayLocale
+        customOppiaTagActionListener,
+        null,
+        displayLocale,
+        supportLtr = supportLtr
       )
     }
 
@@ -276,7 +251,9 @@ class HtmlParser private constructor(
      */
     fun create(
       policyOppiaTagActionListener: PolicyOppiaTagActionListener? = null,
-      displayLocale: OppiaLocale.DisplayLocale
+      displayLocale: OppiaLocale.DisplayLocale,
+      supportLtr: Boolean = false
+
     ): HtmlParser {
       return HtmlParser(
         context = context,
@@ -289,7 +266,8 @@ class HtmlParser private constructor(
         cacheLatexRendering = false,
         customOppiaTagActionListener = null,
         policyOppiaTagActionListener = policyOppiaTagActionListener,
-        displayLocale = displayLocale
+        displayLocale = displayLocale,
+        supportLtr = supportLtr
       )
     }
   }
