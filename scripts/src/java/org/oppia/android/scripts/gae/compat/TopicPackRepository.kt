@@ -547,13 +547,13 @@ private interface VersionedStructureFetcher<I : StructureId, S> {
   fun fetchLatestFromRemoteAsync(
     id: I,
     service: AndroidActivityHandlerService
-  ): Deferred<VersionedStructure<S>>
+  ): Deferred<VersionedStructure<S>?>
 
   fun fetchMultiFromRemoteAsync(
     id: I,
     versions: List<Int>,
     service: AndroidActivityHandlerService
-  ): Deferred<List<VersionedStructure<S>>>
+  ): Deferred<List<VersionedStructure<S>?>>
 }
 
 private sealed class VersionedStructureReference<I : StructureId, S> {
@@ -574,9 +574,9 @@ private sealed class VersionedStructureReference<I : StructureId, S> {
   suspend fun loadLatest(
     service: AndroidActivityHandlerService,
     checker: StructureCompatibilityChecker
-  ): Pair<S, LoadResult<S>> {
+  ): Pair<S?, LoadResult<S>> {
     val result = fetcher.fetchLatestFromRemoteAsync(structureId, service)
-    return result.await().payload to result.toLoadResult(checker)
+    return result.await()?.payload to result.toLoadResult(checker)
   }
 
   suspend fun loadVersioned(
@@ -592,24 +592,29 @@ private sealed class VersionedStructureReference<I : StructureId, S> {
     }.toMap()
   }
 
-  private suspend fun Deferred<VersionedStructure<S>>.toLoadResult(
+  private suspend fun Deferred<VersionedStructure<S>?>.toLoadResult(
     checker: StructureCompatibilityChecker
   ): LoadResult<S> = await().toLoadResult(checker)
 
   @JvmName("listToLoadResult")
   private suspend fun Deferred<List<VersionedStructure<S>?>>.toLoadResult(
     checker: StructureCompatibilityChecker
-  ): List<LoadResult<S>?> = await().map { it?.toLoadResult(checker) }
+  ): List<LoadResult<S>?> = await().map { it.toLoadResult(checker) }
 
-  private fun VersionedStructure<S>.toLoadResult(
+  private fun VersionedStructure<S>?.toLoadResult(
     checker: StructureCompatibilityChecker
   ): LoadResult<S> {
+    if (this == null) return LoadResult.Pending<S>() // Failed to download.
     return when (val compatibilityResult = checkCompatibility(checker, payload)) {
       Compatible -> LoadResult.Success(payload)
-      is Incompatible -> LoadResult.Failure<S>(compatibilityResult.failures) // .also {
-      //   // TODO: Remove.
-      //   error("Failed to load: $it.")
-      // }
+      is Incompatible -> {
+        // TODO: Remove this once Oppia web supports pulling structures without schema migrations (see https://github.com/oppia/oppia/issues/21253).
+        val irrecoverableFailure = compatibilityResult.failures.firstOrNull { it is CompatibilityFailure.StateSchemaVersionTooNew }
+        check(irrecoverableFailure == null) {
+          "Oppia web introduced a state schema upgrade. Cannot recover--this script needs to be updated: $irrecoverableFailure"
+        }
+        LoadResult.Failure<S>(compatibilityResult.failures)
+      }
     }
   }
 
@@ -683,8 +688,8 @@ private sealed class VersionedStructureReference<I : StructureId, S> {
   companion object {
     const val INVALID_VERSION = 0
 
-    // TODO: Try 50 or a higher number once multi-version fetching works on Oppia web (see https://github.com/oppia/oppia/issues/18241).
-    val defaultVersionFetchCount: Int = 1
+    // TODO: Try 50 or a higher number once multi-version fetching doesn't cause Redis to overflow (see https://github.com/oppia/oppia/issues/21253).
+    val defaultVersionFetchCount: Int = 5
   }
 }
 
@@ -746,10 +751,10 @@ private class ExplorationFetcher(
   override fun fetchLatestFromRemoteAsync(
     id: StructureId.Exploration,
     service: AndroidActivityHandlerService
-  ): Deferred<VersionedStructure<CompleteExploration>> {
+  ): Deferred<VersionedStructure<CompleteExploration>?> {
     return CoroutineScope(coroutineDispatcher).async {
       val latestExp = service.fetchLatestExplorationAsync(id.id).await()
-      return@async latestExp.copyWithNewPayload(service.downloadExploration(id, latestExp.payload))
+      return@async latestExp?.let { it.copyWithNewPayload(service.downloadExploration(id, it.payload)) }
     }
   }
 
@@ -757,10 +762,10 @@ private class ExplorationFetcher(
     id: StructureId.Exploration,
     versions: List<Int>,
     service: AndroidActivityHandlerService
-  ): Deferred<List<VersionedStructure<CompleteExploration>>> {
+  ): Deferred<List<VersionedStructure<CompleteExploration>?>> {
     return CoroutineScope(coroutineDispatcher).async {
-      service.fetchExplorationByVersionsAsync(id.id, versions).await().map {
-        it.copyWithNewPayload(service.downloadExploration(id, it.payload))
+      service.fetchExplorationByVersionsAsync(id.id, versions).await().map { expResult ->
+        expResult?.let { it.copyWithNewPayload(service.downloadExploration(id, it.payload)) }
       }
     }
   }
@@ -775,9 +780,14 @@ private class ExplorationFetcher(
           id.id, exploration.version, languageType.toContentLanguageCode()
         )
       }.awaitAll()
+      val receivedTranslations = translations.filterNotNull()
+      val missingTranslations = translations.mapIndexedNotNull { index, value ->
+        index.takeIf { value == null } // Take only indexes corresponding to missing values.
+      }.map { VALID_LANGUAGE_TYPES[it] }
+      check(missingTranslations.isEmpty()) { "Failed to fetch translations for exploration $id: $missingTranslations." }
       return CompleteExploration(
         exploration,
-        translations.associateBy {
+        receivedTranslations.associateBy {
           it.languageCode?.resolveLanguageCode() ?: LANGUAGE_CODE_UNSPECIFIED
         }
       )
@@ -867,6 +877,7 @@ private class VersionStructureMapManagerTakeLatestImpl(
       // results for all previous versions.
       val versionedRef = createReference(structureId, VersionedStructureReference.INVALID_VERSION)
       val (structure, result) = versionedRef.loadLatest(androidService, compatibilityChecker)
+      checkNotNull(structure) { "Failed to download latest structure for ID: $structureId." }
       val latestVersion = versionedRef.toNewVersion(retrieveStructureVersion(structure))
       val structureMap = mutableMapOf<GenericStructureReference, GenericLoadResult>()
       structureMap[latestVersion] = result

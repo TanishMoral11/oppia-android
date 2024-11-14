@@ -34,10 +34,10 @@ import java.io.File
 // TODO: Consider using better argument parser so that dev env vals can be defaulted.
 // TODO: verify that images aren't changed after upload, but this needs to be confirmed (that is, if they need to be changed a new image is added to GCS, instead).
 fun main(vararg args: String) {
-  check(args.size == 6) {
+  check(args.size >= 5) {
     "Expected use: bazel run //scripts:download_lesson_list <base_url> <gcs_base_url>" +
       " <gcs_bucket> </path/to/api/secret.file> </path/to/output_list.textproto>" +
-      " </path/to/api/debug/dir>"
+      " [</path/to/api/debug/dir>]"
   }
 
   val baseUrl = args[0]
@@ -45,14 +45,16 @@ fun main(vararg args: String) {
   val gcsBucket = args[2]
   val apiSecretPath = args[3]
   val outputFilePath = args[4]
-  val apiDebugPath = args[5]
+  val apiDebugPath = args.getOrNull(5)
   val apiSecretFile = File(apiSecretPath).absoluteFile.normalize().also {
     check(it.exists() && it.isFile) { "Expected API secret file to exist: $apiSecretPath." }
   }
   val outputFile = File(outputFilePath).absoluteFile.normalize()
-  val apiDebugDir = File(apiDebugPath).absoluteFile.normalize().also {
-    check(if (!it.exists()) it.mkdirs() else it.isDirectory) {
-      "Expected API debug directory to exist or to be creatable: $apiDebugPath."
+  val apiDebugDir = apiDebugPath?.let { path ->
+    File(path).absoluteFile.normalize().also {
+      check(if (!it.exists()) it.mkdirs() else it.isDirectory) {
+        "Expected API debug directory to exist or to be creatable: $path."
+      }
     }
   }
 
@@ -71,7 +73,7 @@ class LessonListDownloader(
   gcsBaseUrl: String,
   gcsBucket: String,
   apiSecret: String,
-  private val apiDebugDir: File,
+  private val apiDebugDir: File?,
   private val scriptBgDispatcher: ScriptBackgroundCoroutineDispatcher
 ) {
   private val gcsService by lazy { GcsService(gcsBaseUrl, gcsBucket) }
@@ -90,7 +92,7 @@ class LessonListDownloader(
 
   fun downloadLessonListAsync(lessonListOutputFile: File): Deferred<Unit> {
     return CoroutineScope(scriptBgDispatcher).async {
-      println("Config: Using ${apiDebugDir.path}/ for storing API responses (for debugging).")
+      if (apiDebugDir != null) println("Config: Using ${apiDebugDir.path}/ for storing API responses (for debugging).")
 
       val listResponse = downloadTopicListResponseDto()
       println()
@@ -147,41 +149,6 @@ class LessonListDownloader(
       appVersionCode = 0
     }.build()
     private const val CONSOLE_COLUMN_COUNT = 80
-
-    private const val PLACE_VALUES_ID = "iX9kYCjnouWN"
-    private const val ADDITION_AND_SUBTRACTION_ID = "sWBXKH4PZcK6"
-    private const val MULTIPLICATION_ID = "C4fqwrvqWpRm"
-    private const val DIVISION_ID = "qW12maD4hiA8"
-    private const val EXPRESSIONS_AND_EQUATIONS_ID = "dLmjjMDbCcrf"
-    private const val FRACTIONS_ID = "0abdeaJhmfPm"
-    private const val RATIOS_ID = "5g0nxGUmx5J5"
-
-    private val fractionsDependencies by lazy {
-      setOf(ADDITION_AND_SUBTRACTION_ID, MULTIPLICATION_ID, DIVISION_ID)
-    }
-    private val ratiosDependencies by lazy {
-      setOf(ADDITION_AND_SUBTRACTION_ID, MULTIPLICATION_ID, DIVISION_ID)
-    }
-    private val additionAndSubtractionDependencies by lazy { setOf(PLACE_VALUES_ID) }
-    private val multiplicationDependencies by lazy { setOf(ADDITION_AND_SUBTRACTION_ID) }
-    private val divisionDependencies by lazy { setOf(MULTIPLICATION_ID) }
-    private val placeValuesDependencies by lazy { setOf<String>() }
-    private val expressionsAndEquationsDependencies by lazy {
-      setOf(ADDITION_AND_SUBTRACTION_ID, MULTIPLICATION_ID, DIVISION_ID)
-    }
-
-    // TODO: Migrate deps over to the data coming from GAE (since it *is* present).
-    private val topicDependenciesTable by lazy {
-      mapOf(
-        FRACTIONS_ID to fractionsDependencies,
-        RATIOS_ID to ratiosDependencies,
-        ADDITION_AND_SUBTRACTION_ID to additionAndSubtractionDependencies,
-        MULTIPLICATION_ID to multiplicationDependencies,
-        DIVISION_ID to divisionDependencies,
-        PLACE_VALUES_ID to placeValuesDependencies,
-        EXPRESSIONS_AND_EQUATIONS_ID to expressionsAndEquationsDependencies,
-      )
-    }
 
     private fun TopicListResponseDto.captureVersions(): DownloadListVersions {
       val downloadableTopics = availableTopicsList.filter { availableTopic ->

@@ -144,8 +144,13 @@ class GaeAndroidEndpointJsonImpl(
 
       val missingTopicIds = topicIds - availableTopicPacks.keys
       val futureTopics = missingTopicIds.map { topicId ->
-        activityService.fetchLatestTopicAsync(topicId)
-      }.awaitAll().associate { it.id to it.payload }
+        CoroutineScope(coroutineDispatcher).async {
+          topicId to activityService.fetchLatestTopicAsync(topicId).await()
+        }
+      }.awaitAll().associate { (topicId, result) ->
+        check(result != null) { "Failed to fetch topic: $topicId." }
+        return@associate result.id to result.payload
+      }
 
       contentCache.addPacks(availableTopicPacks)
       jsonConverter.trackClassroomTranslations(classrooms)
@@ -236,9 +241,10 @@ class GaeAndroidEndpointJsonImpl(
     return CoroutineScope(coroutineDispatcher).async {
       SUPPORTED_CLASSROOMS.map { classroomName ->
         CoroutineScope(coroutineDispatcher).async {
-          activityService.fetchLatestClassroomAsync(classroomName).await().also {
+          val classroomResult = activityService.fetchLatestClassroomAsync(classroomName).await().also {
             tracker.reportDownloaded(classroomName)
-          }.payload
+          }
+          checkNotNull(classroomResult?.payload) { "Failed to fetch classroom: $classroomName." }
         }
       }.awaitAll().map { it.filterTopics() }
     }
@@ -855,7 +861,7 @@ class GaeAndroidEndpointJsonImpl(
     private val SUPPORTED_DEFAULT_LANGUAGES = setOf(LanguageType.ENGLISH)
 
     // From feconf.
-    private const val SUPPORTED_STATE_SCHEMA_VERSION = 55
+    private const val SUPPORTED_STATE_SCHEMA_VERSION = 56
 
     private fun ClientCompatibilityContextDto.verifyCompatibility() {
       check(topicListRequestResponseProtoVersion == createLatestTopicListProtoVersion()) {

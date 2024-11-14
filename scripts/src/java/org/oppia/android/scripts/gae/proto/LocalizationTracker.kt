@@ -478,6 +478,15 @@ class LocalizationTracker private constructor(
           "ca_choices_226" -> 38
           else -> 0
         }
+        id.id == "OKxYhsWONHZV" && contentId == "ca_choices_128" -> 39
+        id.id == "W0xq3jW5GzDF" && contentId == "feedback_2" -> 40
+        id.id == "53Ka3mQ6ra5A" -> when (contentId) {
+          "content_91" -> 41
+          "default_outcome_92" -> 42
+          "feedback_93" -> 43
+          "ca_buttonText_23" -> 44
+          else -> 0
+        }
         else -> 0
       }
       if (contentId !in defaultContentIds && expectedExemptionCase > 0) return
@@ -487,10 +496,10 @@ class LocalizationTracker private constructor(
           "Attempting to add an asset for a content ID that hasn't been defaulted in container:" +
           " $id, content ID: $contentId."
       }
-      // check(contentId in defaultContentIds) {
-      //   "Attempting to add an asset for a content ID that hasn't been defaulted in container:" +
-      //     " $id, content ID: $contentId."
-      // }
+      require(contentId in defaultContentIds) {
+        "Attempting to add an asset for a content ID that hasn't been defaulted in container:" +
+          " $id, content ID: $contentId."
+      }
     }
   }
 
@@ -600,6 +609,7 @@ class LocalizationTracker private constructor(
           "solution_130" -> true
           else -> false
         }
+        id.id == "BJd7yHIxpqkq" && contentId == "solution_110" -> true
         else -> false
       }
       if (contentId in textTranslations && expectedExemption) return

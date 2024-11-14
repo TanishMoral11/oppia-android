@@ -12,7 +12,8 @@ data class GaeState(
   @Json(name = "linked_skill_id") val linkedSkillId: String?,
   @Json(name = "recorded_voiceovers") val recordedVoiceovers: GaeRecordedVoiceovers,
   @Json(name = "solicit_answer_details") val solicitAnswerDetails: Boolean,
-  @Json(name = "card_is_checkpoint") val cardIsCheckpoint: Boolean
+  @Json(name = "card_is_checkpoint") val cardIsCheckpoint: Boolean,
+  @Json(name = "inapplicable_skill_misconception_ids") val inapplicableSkillMisconceptionIds: List<String>?
 ) {
   fun computeReferencedSkillIds(): List<String> =
     listOfNotNull(linkedSkillId) + interaction.computeReferencedSkillIds()

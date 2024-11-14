@@ -60,7 +60,7 @@ class AndroidActivityHandlerService(
   }
   private val apiService by lazy { retrofit.create(AndroidActivityEndpointApi::class.java) }
 
-  fun fetchLatestClassroomAsync(name: String): Deferred<VersionedStructure<GaeClassroom>> {
+  fun fetchLatestClassroomAsync(name: String): Deferred<VersionedStructure<GaeClassroom>?> {
     return fetchLatestFromServiceAsync(
       type = "classroom",
       id = name,
@@ -69,7 +69,7 @@ class AndroidActivityHandlerService(
     )
   }
 
-  fun fetchLatestExplorationAsync(id: String): Deferred<VersionedStructure<GaeExploration>> {
+  fun fetchLatestExplorationAsync(id: String): Deferred<VersionedStructure<GaeExploration>?> {
     return fetchLatestFromServiceAsync(
       type = "exploration",
       id = id,
@@ -81,7 +81,7 @@ class AndroidActivityHandlerService(
   fun fetchExplorationByVersionsAsync(
     id: String,
     versions: List<Int>
-  ): Deferred<List<VersionedStructure<GaeExploration>>> {
+  ): Deferred<List<VersionedStructure<GaeExploration>?>> {
     return fetchVersionedFromServiceAsync(
       type = "exploration",
       id = id,
@@ -93,7 +93,7 @@ class AndroidActivityHandlerService(
     )
   }
 
-  fun fetchLatestStoryAsync(id: String): Deferred<VersionedStructure<GaeStory>> {
+  fun fetchLatestStoryAsync(id: String): Deferred<VersionedStructure<GaeStory>?> {
     return fetchLatestFromServiceAsync(
       type = "story",
       id = id,
@@ -105,7 +105,7 @@ class AndroidActivityHandlerService(
   fun fetchStoryByVersionsAsync(
     id: String,
     versions: List<Int>
-  ): Deferred<List<VersionedStructure<GaeStory>>> {
+  ): Deferred<List<VersionedStructure<GaeStory>?>> {
     return fetchVersionedFromServiceAsync(
       type = "story",
       id = id,
@@ -117,7 +117,7 @@ class AndroidActivityHandlerService(
     )
   }
 
-  fun fetchLatestConceptCardAsync(skillId: String): Deferred<VersionedStructure<GaeSkill>> {
+  fun fetchLatestConceptCardAsync(skillId: String): Deferred<VersionedStructure<GaeSkill>?> {
     return fetchLatestFromServiceAsync(
       type = "concept_card",
       id = skillId,
@@ -129,7 +129,7 @@ class AndroidActivityHandlerService(
   fun fetchConceptCardByVersionsAsync(
     skillId: String,
     versions: List<Int>
-  ): Deferred<List<VersionedStructure<GaeSkill>>> {
+  ): Deferred<List<VersionedStructure<GaeSkill>?>> {
     return fetchVersionedFromServiceAsync(
       type = "concept_card",
       id = skillId,
@@ -144,7 +144,7 @@ class AndroidActivityHandlerService(
   fun fetchLatestRevisionCardAsync(
     topicId: String,
     subtopicIndex: Int
-  ): Deferred<VersionedStructure<GaeSubtopicPage>> {
+  ): Deferred<VersionedStructure<GaeSubtopicPage>?> {
     return fetchLatestFromServiceAsync(
       type = "revision_card",
       id = "$topicId-$subtopicIndex",
@@ -157,7 +157,7 @@ class AndroidActivityHandlerService(
     topicId: String,
     subtopicIndex: Int,
     versions: List<Int>
-  ): Deferred<List<VersionedStructure<GaeSubtopicPage>>> {
+  ): Deferred<List<VersionedStructure<GaeSubtopicPage>?>> {
     return fetchVersionedFromServiceAsync(
       type = "revision_card",
       id = "$topicId-$subtopicIndex",
@@ -169,7 +169,7 @@ class AndroidActivityHandlerService(
     )
   }
 
-  fun fetchLatestTopicAsync(id: String): Deferred<VersionedStructure<GaeTopic>> {
+  fun fetchLatestTopicAsync(id: String): Deferred<VersionedStructure<GaeTopic>?> {
     return fetchLatestFromServiceAsync(
       type = "topic",
       id = id,
@@ -181,7 +181,7 @@ class AndroidActivityHandlerService(
   fun fetchTopicByVersionsAsync(
     id: String,
     versions: List<Int>
-  ): Deferred<List<VersionedStructure<GaeTopic>>> {
+  ): Deferred<List<VersionedStructure<GaeTopic>?>> {
     return fetchVersionedFromServiceAsync(
       type = "topic",
       id = id,
@@ -197,7 +197,7 @@ class AndroidActivityHandlerService(
     explorationId: String,
     explorationVersion: Int,
     languageCode: String
-  ): Deferred<VersionedStructure<GaeEntityTranslations>> {
+  ): Deferred<VersionedStructure<GaeEntityTranslations>?> {
     val fullFetch = fetchVersionedFromServiceAsync(
       type = "exploration_translations",
       id = explorationId,
@@ -213,7 +213,7 @@ class AndroidActivityHandlerService(
   private fun <S> Call<VersionedStructures<S>>.resolveAsyncVersionsAsync(
     expectedId: String,
     expectedVersions: List<Int>
-  ): Deferred<VersionedStructures<S>> {
+  ): Deferred<List<VersionedStructure<S>?>> {
     val expectedIdsAndVersions = expectedVersions.map { expectedId to it }
     // Use the I/O dispatcher for blocking HTTP operations (since it's designed to handle blocking
     // operations that might otherwise stall a coroutine dispatcher).
@@ -221,29 +221,29 @@ class AndroidActivityHandlerService(
       val responses = resolveSync()
       val receivedIdsAndVersions =
         responses.mapTo(mutableSetOf()) { versioned -> versioned.id to versioned.version }
-      val missingIds = expectedIdsAndVersions - receivedIdsAndVersions
       val extraIds = receivedIdsAndVersions - expectedIdsAndVersions.toSet()
-      check(missingIds.isEmpty()) {
-        "Missing ID/versions in response: $missingIds. Received: $receivedIdsAndVersions."
-      }
       check(extraIds.isEmpty()) {
-        "Received extra ID/versions in response: $missingIds. Received: $receivedIdsAndVersions."
+        "Received extra ID/versions in response: $extraIds. Received: $receivedIdsAndVersions."
       }
 
       // Return the structures in the order of the input IDs/versions map.
       val associatedMap = responses.associateBy { versioned -> versioned.id to versioned.version }
-      return@async expectedIdsAndVersions.map { associatedMap.getValue(it) }
+      return@async expectedIdsAndVersions.map { associatedMap[it] }
     }
   }
 
   private fun <S> Call<VersionedStructures<S>>.resolveAsync(
     expectedId: String
-  ): Deferred<VersionedStructure<S>> {
+  ): Deferred<VersionedStructure<S>?> {
     return CoroutineScope(dispatcher).async {
       val responses = resolveSync()
-      checkNotNull(responses.singleOrNull { it.id == expectedId }) {
-        "Missing expected ID $expectedId from responses: $responses.".redact()
+      val receivedIdsAndVersions =
+        responses.mapTo(mutableSetOf()) { versioned -> versioned.id to versioned.version }
+      val extraIds = receivedIdsAndVersions - setOf(expectedId to null)
+      check(extraIds.isEmpty()) {
+        "Received extra ID/versions in response: $extraIds. Received: $receivedIdsAndVersions."
       }
+      return@async responses.singleOrNull { it.id == expectedId }
     }
   }
 
@@ -259,7 +259,9 @@ class AndroidActivityHandlerService(
       } catch (exception: Exception) {
         val metadata = RequestMetadata(request().method, request().url.toUrl().toExternalForm())
         val responseBodyText = memoizedRawResponses[metadata]
-        throw IllegalStateException(
+        if (responseBodyText?.contains("maxmemory") == true) {
+          throw IllegalStateException("Oppia web ran out of memory. Clear Redis memory cache and try again.", exception)
+        } else throw IllegalStateException(
           "Failed to call: ${request()}. Response body:\n\n$responseBodyText".redact(), exception
         )
       }
@@ -273,7 +275,7 @@ class AndroidActivityHandlerService(
     id: String,
     crossinline fetch: (AndroidActivityRequests.Latest) -> Call<List<VersionedStructure<T>>>,
     noinline retrieveStructureVersion: ((T) -> Int)?
-  ): Deferred<VersionedStructure<T>> {
+  ): Deferred<VersionedStructure<T>?> {
     return CoroutineScope(dispatcher).async {
       if (forceCacheLoad && cacheDir != null) {
         // Try to load latest from the local directory, first.
@@ -295,11 +297,11 @@ class AndroidActivityHandlerService(
       val request = AndroidActivityRequests.Latest(LatestVersion(id))
       val remoteStructure = fetch(request).resolveAsync(id).await()
       // Ensure that the returned structure has the correct version (if it's known).
-      return@async if (retrieveStructureVersion != null) {
+      return@async if (remoteStructure != null && retrieveStructureVersion != null) {
         remoteStructure.copy(version = retrieveStructureVersion(remoteStructure.payload)).also {
           maybeSaveToCache(type, NonLocalized(id, it.expectedVersion), it)
         }
-      } else remoteStructure.also { maybeSaveToCache(type, LatestVersion(id), it) }
+      } else remoteStructure?.also { maybeSaveToCache(type, LatestVersion(id), it) }
     }
   }
 
@@ -311,7 +313,7 @@ class AndroidActivityHandlerService(
     crossinline createRequests: (List<R>) -> RS,
     crossinline fetch: (RS) -> Call<List<VersionedStructure<T>>>,
     noinline retrieveStructureVersion: ((T) -> Int)?
-  ): Deferred<List<VersionedStructure<T>>> {
+  ): Deferred<List<VersionedStructure<T>?>> {
     require(versions.all { it >= 1 }) { "Versions must be >= 1." }
     require(versions.toSet().size == versions.size) { "Expected requested versions to be unique." }
     return CoroutineScope(dispatcher).async {
@@ -324,10 +326,11 @@ class AndroidActivityHandlerService(
       val reqsCol = createRequests(requestsRequiringRemoteFetching.map { (_, req) -> req })
       val fetchResult = if (reqsCol.requests.isNotEmpty()) {
         // Only fetch if there are versions to retrieve.
-        fetch(reqsCol).resolveAsyncVersionsAsync(id, versions).await().map { structure ->
+        val versionsToRetrieve = requestsRequiringRemoteFetching.map { (index, _) -> versions[index] }
+        fetch(reqsCol).resolveAsyncVersionsAsync(id, versionsToRetrieve).await().map { structure ->
           // Ensure that the returned structures have the correct remote versions (since the web
           // controller isn't consistent in when it provides a version).
-          if (retrieveStructureVersion != null) {
+          if (structure != null && retrieveStructureVersion != null) {
             structure.copy(version = retrieveStructureVersion(structure.payload))
           } else structure
         }
@@ -340,7 +343,7 @@ class AndroidActivityHandlerService(
         structure ?: remoteStructures.getValue(index)
       }.also { allStructures ->
         allStructures.forEachIndexed { index, structure ->
-          maybeSaveToCache(type, requests[index], structure)
+          if (structure != null) maybeSaveToCache(type, requests[index], structure)
         }
       }
     }
