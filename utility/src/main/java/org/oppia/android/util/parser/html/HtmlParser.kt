@@ -125,11 +125,17 @@ class HtmlParser private constructor(
     }
 
     val imageGetter = urlImageParserFactory?.create(
-      htmlContentTextView, gcsResourceName, entityType, entityId, imageCenterAlign
+      htmlContentTextView,
+      gcsResourceName,
+      entityType,
+      entityId,
+      imageCenterAlign
     )
 
     val htmlSpannable = CustomHtmlContentHandler.fromHtml(
-      htmlContent, imageGetter, computeCustomTagHandlers(supportsConceptCards, htmlContentTextView)
+      htmlContent,
+      imageGetter,
+      computeCustomTagHandlers(supportsConceptCards, htmlContentTextView)
     )
 
     val urlPattern = Patterns.WEB_URL
@@ -228,17 +234,17 @@ class HtmlParser private constructor(
       supportLtr: Boolean = false
     ): HtmlParser {
       return HtmlParser(
-        context,
-        urlImageParserFactory,
-        gcsResourceName,
-        entityType,
-        entityId,
-        imageCenterAlign,
-        consoleLogger,
+        context = context,
+        urlImageParserFactory = urlImageParserFactory,
+        gcsResourceName = gcsResourceName,
+        entityType = entityType,
+        entityId = entityId,
+        imageCenterAlign = imageCenterAlign,
+        consoleLogger = consoleLogger,
         cacheLatexRendering = enableCacheLatexRendering.value,
-        customOppiaTagActionListener,
-        null,
-        displayLocale,
+        customOppiaTagActionListener = customOppiaTagActionListener,
+        policyOppiaTagActionListener = null,
+        displayLocale = displayLocale,
         supportLtr = supportLtr
       )
     }
@@ -253,7 +259,6 @@ class HtmlParser private constructor(
       policyOppiaTagActionListener: PolicyOppiaTagActionListener? = null,
       displayLocale: OppiaLocale.DisplayLocale,
       supportLtr: Boolean = false
-
     ): HtmlParser {
       return HtmlParser(
         context = context,
