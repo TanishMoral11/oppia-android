@@ -41,6 +41,7 @@ import org.oppia.android.app.application.ApplicationInjector
 import org.oppia.android.app.application.ApplicationInjectorProvider
 import org.oppia.android.app.application.ApplicationModule
 import org.oppia.android.app.application.ApplicationStartupListenerModule
+import org.oppia.android.app.classroom.ClassroomListActivity
 import org.oppia.android.app.devoptions.DeveloperOptionsModule
 import org.oppia.android.app.devoptions.DeveloperOptionsStarterModule
 import org.oppia.android.app.home.HomeActivity
@@ -187,6 +188,7 @@ class SplashActivityTest {
 
   @After
   fun tearDown() {
+    TestPlatformParameterModule.reset()
     testCoroutineDispatchers.unregisterIdlingResource()
     Intents.release()
   }
@@ -1086,19 +1088,55 @@ class SplashActivityTest {
   }
 
   @Test
-  @RunOn(TestPlatform.ESPRESSO)
   fun testSplashActivity_onboardingV2Enabled_onboardedSoleLearnerProfile_routesToHomeActivity() {
-    runInNewTestApplication {
-      profileTestHelper.addOnlyAdminProfileWithoutPin()
-      appStartupStateController.markOnboardingFlowCompleted()
-      testCoroutineDispatchers.advanceUntilIdle()
-    }
+    simulateAppAlreadyOnboarded()
+    TestPlatformParameterModule.forceEnableMultipleClassrooms(false)
     initializeTestApplication(onboardingV2Enabled = true)
+    profileTestHelper.addOnlyAdminProfileWithoutPin()
+    testCoroutineDispatchers.runCurrent()
+
     val profileId = ProfileId.newBuilder().setInternalId(0).build()
-    profileTestHelper.markProfileOnboardingStarted(profileId)
-    profileTestHelper.markProfileOnboardingEnded(profileId)
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.updateProfileType(profileId, ProfileType.SOLE_LEARNER)
+    )
+
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.markProfileOnboardingStarted(profileId)
+    )
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.markProfileOnboardingEnded(profileId)
+    )
+    testCoroutineDispatchers.runCurrent()
+
     launchSplashActivityPartially {
       intended(hasComponent(HomeActivity::class.java.name))
+    }
+  }
+
+  @Test
+  fun testSplashActivity_onboardingV2_onboardedSoleLearnerProfile_routesToClassroomListActivity() {
+    simulateAppAlreadyOnboarded()
+    TestPlatformParameterModule.forceEnableMultipleClassrooms(true)
+    initializeTestApplication(onboardingV2Enabled = true)
+    testCoroutineDispatchers.unregisterIdlingResource()
+    profileTestHelper.addOnlyAdminProfileWithoutPin()
+    testCoroutineDispatchers.runCurrent()
+
+    val profileId = ProfileId.newBuilder().setInternalId(0).build()
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.updateProfileType(profileId, ProfileType.SOLE_LEARNER)
+    )
+
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.markProfileOnboardingStarted(profileId)
+    )
+    monitorFactory.waitForNextSuccessfulResult(
+      profileTestHelper.markProfileOnboardingEnded(profileId)
+    )
+    testCoroutineDispatchers.runCurrent()
+
+    launchSplashActivityPartially {
+      intended(hasComponent(ClassroomListActivity::class.java.name))
     }
   }
 

@@ -353,7 +353,7 @@ class ProfileChooserFragmentTest {
   }
 
   @Test
-  fun testProfileChooserFragment_clickProfile_checkOpensPinPasswordActivity() {
+  fun testProfileChooserFragment_onboardingV1_clickAdminProfile_checkOpensPinPasswordActivity() {
     TestPlatformParameterModule.forceEnableOnboardingFlowV2(false)
     profileTestHelper.initializeProfiles(autoLogIn = false)
     launch(ProfileChooserActivity::class.java).use {

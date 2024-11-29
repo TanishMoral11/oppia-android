@@ -65,19 +65,14 @@ class ProfileTestHelper @Inject constructor(
     return monitorFactory.createMonitor(logIntoAdmin()).waitForNextResult()
   }
 
-  /**
-   * Creates one admin profile without pin and logs in to the profile.
-   *
-   * @returns the [AsyncResult] designating the result of attempting to log into the admin profile
-   */
-  fun addOnlyAdminProfileWithoutPin(): AsyncResult<Any?> {
+  /** Creates one admin profile without pin and logs in to the profile. */
+  fun addOnlyAdminProfileWithoutPin() {
     addProfileAndWait(
       name = "Admin",
       pin = "",
       allowDownloadAccess = true,
       isAdmin = true
     )
-    return monitorFactory.createMonitor(logIntoAdmin()).waitForNextResult()
   }
 
   /** Create [numProfiles] number of user profiles. */
