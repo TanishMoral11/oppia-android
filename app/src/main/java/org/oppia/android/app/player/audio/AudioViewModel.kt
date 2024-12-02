@@ -1,6 +1,5 @@
 package org.oppia.android.app.player.audio
 
-import android.util.Log
 import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import androidx.lifecycle.LiveData
@@ -73,6 +72,7 @@ class AudioViewModel @Inject constructor(
   }
 
   fun loadMainContentAudio(allowAutoPlay: Boolean, reloadingContent: Boolean) {
+    setStateAndExplorationId(state, explorationId)
     hasFeedback = false
     loadAudio(contentId = null, allowAutoPlay, reloadingContent)
   }
@@ -91,7 +91,7 @@ class AudioViewModel @Inject constructor(
   private fun loadAudio(contentId: String?, allowAutoPlay: Boolean, reloadingMainContent: Boolean) {
     val targetContentId = when {
       !contentId.isNullOrEmpty() -> contentId
-      ::state.isInitialized -> state.content.contentId
+      this::state.isInitialized -> state.content.contentId
       else -> ""
     }
 
@@ -112,10 +112,8 @@ class AudioViewModel @Inject constructor(
     selectedLanguageName.set(locale.getDisplayLanguage(locale))
 
     when {
-      selectedLanguageCode.isEmpty() && languages.any {
-        it == defaultLanguage
-      } -> setAudioLanguageCode(defaultLanguage)
-      languages.any { it == selectedLanguageCode } -> setAudioLanguageCode(selectedLanguageCode)
+      selectedLanguageCode.isEmpty() && languages.contains(defaultLanguage) -> setAudioLanguageCode(defaultLanguage)
+      languages.contains(selectedLanguageCode) -> setAudioLanguageCode(selectedLanguageCode)
       languages.isNotEmpty() -> {
         autoPlay = false
         this.reloadingMainContent = false
