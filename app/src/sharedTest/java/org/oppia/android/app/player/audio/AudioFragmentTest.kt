@@ -121,7 +121,6 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 import javax.inject.Inject
 import javax.inject.Singleton
-import org.hamcrest.CoreMatchers.allOf
 
 /**
  * TODO(#59): Make this test work with Espresso.
@@ -158,9 +157,11 @@ class AudioFragmentTest {
   private lateinit var shadowMediaPlayer: Any
 
   private val TEST_URL =
-    "https://storage.googleapis.com/oppiaserver-resources/exploration/" + "2mzzFVDLuAj8/assets/audio/content-en-057j51i2es.mp3"
+    "https://storage.googleapis.com/oppiaserver-resources/exploration/" +
+      "2mzzFVDLuAj8/assets/audio/content-en-057j51i2es.mp3"
   private val TEST_URL2 =
-    "https://storage.googleapis.com/oppiaserver-resources/exploration/" + "2mzzFVDLuAj8/assets/audio/content-hi-2hn6btuei5.mp3"
+    "https://storage.googleapis.com/oppiaserver-resources/exploration/" +
+      "2mzzFVDLuAj8/assets/audio/content-hi-2hn6btuei5.mp3"
 
   private var internalProfileId = 0
   private var profileId = ProfileId.newBuilder().setInternalId(internalProfileId).build()
@@ -476,8 +477,8 @@ class AudioFragmentTest {
       testCoroutineDispatchers.runCurrent()
       scenario.onActivity { activity ->
 
-        val audioFragment =
-          activity.supportFragmentManager.findFragmentById(R.id.audio_fragment_placeholder) as AudioFragment
+        val audioFragment = activity.supportFragmentManager
+          .findFragmentById(R.id.audio_fragment_placeholder) as AudioFragment
         val receivedProfileId = audioFragment.arguments?.extractCurrentUserProfileId()
 
         assertThat(receivedProfileId).isEqualTo(profileId)
@@ -519,7 +520,9 @@ class AudioFragmentTest {
     if (isOnRobolectric()) {
       val dataSource = toDataSource(context, Uri.parse(TEST_URL))
       val dataSource2 = toDataSource(context, Uri.parse(TEST_URL2))
-      val mediaInfo = createMediaInfo(/* duration= */ 1000,/* preparationDelay= */ 0
+      val mediaInfo = createMediaInfo(
+        /* duration= */ 1000,
+        /* preparationDelay= */ 0
       )
       addMediaInfo(dataSource, mediaInfo)
       addMediaInfo(dataSource2, mediaInfo)
@@ -601,7 +604,34 @@ class AudioFragmentTest {
   // TODO(#59): Figure out a way to reuse modules instead of needing to re-declare them.
   @Singleton
   @Component(
-    modules = [RobolectricModule::class, PlatformParameterModule::class, PlatformParameterSingletonModule::class, TestDispatcherModule::class, ApplicationModule::class, LoggerModule::class, ContinueModule::class, FractionInputModule::class, ItemSelectionInputModule::class, MultipleChoiceInputModule::class, NumberWithUnitsRuleModule::class, NumericInputRuleModule::class, TextInputRuleModule::class, DragDropSortInputModule::class, ImageClickInputModule::class, InteractionsModule::class, GcsResourceModule::class, GlideImageLoaderModule::class, ImageParsingModule::class, HtmlParserEntityTypeModule::class, QuestionModule::class, TestLogReportingModule::class, AccessibilityTestModule::class, LogStorageModule::class, CachingTestModule::class, ExpirationMetaDataRetrieverModule::class, ViewBindingShimModule::class, RatioInputModule::class, WorkManagerConfigurationModule::class, ApplicationStartupListenerModule::class, LogReportWorkerModule::class, HintsAndSolutionConfigModule::class, HintsAndSolutionProdModule::class, FirebaseLogUploaderModule::class, FakeOppiaClockModule::class, DeveloperOptionsStarterModule::class, DeveloperOptionsModule::class, ExplorationStorageModule::class, NetworkModule::class, NetworkConfigProdModule::class, NetworkConnectionUtilDebugModule::class, NetworkConnectionDebugUtilModule::class, AssetModule::class, LocaleProdModule::class, ActivityRecreatorTestModule::class, NumericExpressionInputModule::class, AlgebraicExpressionInputModule::class, MathEquationInputModule::class, SplitScreenInteractionModule::class, LoggingIdentifierModule::class, ApplicationLifecycleModule::class, SyncStatusModule::class, MetricLogSchedulerModule::class, TestingBuildFlavorModule::class, ActivityRouterModule::class, CpuPerformanceSnapshotterModule::class, ExplorationProgressModule::class, TestAuthenticationModule::class]
+    modules = [
+      RobolectricModule::class,
+      PlatformParameterModule::class, PlatformParameterSingletonModule::class,
+      TestDispatcherModule::class, ApplicationModule::class,
+      LoggerModule::class, ContinueModule::class, FractionInputModule::class,
+      ItemSelectionInputModule::class, MultipleChoiceInputModule::class,
+      NumberWithUnitsRuleModule::class, NumericInputRuleModule::class, TextInputRuleModule::class,
+      DragDropSortInputModule::class, ImageClickInputModule::class, InteractionsModule::class,
+      GcsResourceModule::class, GlideImageLoaderModule::class, ImageParsingModule::class,
+      HtmlParserEntityTypeModule::class, QuestionModule::class, TestLogReportingModule::class,
+      AccessibilityTestModule::class, LogStorageModule::class, CachingTestModule::class,
+      ExpirationMetaDataRetrieverModule::class,
+      ViewBindingShimModule::class, RatioInputModule::class, WorkManagerConfigurationModule::class,
+      ApplicationStartupListenerModule::class, LogReportWorkerModule::class,
+      HintsAndSolutionConfigModule::class, HintsAndSolutionProdModule::class,
+      FirebaseLogUploaderModule::class, FakeOppiaClockModule::class,
+      DeveloperOptionsStarterModule::class, DeveloperOptionsModule::class,
+      ExplorationStorageModule::class, NetworkModule::class, NetworkConfigProdModule::class,
+      NetworkConnectionUtilDebugModule::class, NetworkConnectionDebugUtilModule::class,
+      AssetModule::class, LocaleProdModule::class, ActivityRecreatorTestModule::class,
+      NumericExpressionInputModule::class, AlgebraicExpressionInputModule::class,
+      MathEquationInputModule::class, SplitScreenInteractionModule::class,
+      LoggingIdentifierModule::class, ApplicationLifecycleModule::class,
+      SyncStatusModule::class, MetricLogSchedulerModule::class, TestingBuildFlavorModule::class,
+      ActivityRouterModule::class,
+      CpuPerformanceSnapshotterModule::class, ExplorationProgressModule::class,
+      TestAuthenticationModule::class
+    ]
   )
   interface TestApplicationComponent : ApplicationComponent {
     @Component.Builder
@@ -617,7 +647,8 @@ class AudioFragmentTest {
 
   class TestApplication : Application(), ActivityComponentFactory, ApplicationInjectorProvider {
     private val component: TestApplicationComponent by lazy {
-      DaggerAudioFragmentTest_TestApplicationComponent.builder().setApplication(this)
+      DaggerAudioFragmentTest_TestApplicationComponent.builder()
+        .setApplication(this)
         .build() as TestApplicationComponent
     }
 
