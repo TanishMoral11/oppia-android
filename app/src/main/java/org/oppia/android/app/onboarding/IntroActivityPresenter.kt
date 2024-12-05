@@ -2,12 +2,12 @@ package org.oppia.android.app.onboarding
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import javax.inject.Inject
 import org.oppia.android.R
 import org.oppia.android.app.activity.ActivityScope
 import org.oppia.android.app.model.IntroActivityParams
 import org.oppia.android.app.model.ProfileId
 import org.oppia.android.databinding.IntroActivityBinding
+import javax.inject.Inject
 
 private const val TAG_LEARNER_INTRO_FRAGMENT = "TAG_INTRO_FRAGMENT"
 

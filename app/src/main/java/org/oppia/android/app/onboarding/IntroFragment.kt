@@ -9,12 +9,12 @@ import org.oppia.android.app.fragment.FragmentComponentImpl
 import org.oppia.android.app.fragment.InjectableFragment
 import org.oppia.android.app.model.IntroActivityParams
 import org.oppia.android.app.model.IntroFragmentArguments
+import org.oppia.android.app.model.ProfileId
 import org.oppia.android.util.extensions.getProto
 import org.oppia.android.util.extensions.putProto
+import org.oppia.android.util.profile.CurrentUserProfileIdIntentDecorator.decorateWithUserProfileId
 import org.oppia.android.util.profile.CurrentUserProfileIdIntentDecorator.extractCurrentUserProfileId
 import javax.inject.Inject
-import org.oppia.android.app.model.ProfileId
-import org.oppia.android.util.profile.CurrentUserProfileIdIntentDecorator.decorateWithUserProfileId
 
 /** Fragment that contains the introduction message for new learners. */
 class IntroFragment : InjectableFragment() {

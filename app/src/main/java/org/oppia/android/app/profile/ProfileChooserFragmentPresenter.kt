@@ -320,7 +320,7 @@ class ProfileChooserFragmentPresenter @Inject constructor(
     }
   }
 
-  /** Handles navigation to the [AdministratorControlsActivity]. */
+  /** Handles navigation to either the [AdministratorControlsActivity] or [AdminAuthActivity]. */
   fun routeToAdminPin() {
     if (chooserViewModel.adminPin.isEmpty()) {
       val profileId =
