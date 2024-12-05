@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import androidx.recyclerview.widget.GridLayoutManager
 import org.oppia.android.R
@@ -61,7 +60,7 @@ private val COLORS_LIST = listOf(
   R.color.component_color_avatar_background_24_color
 )
 
-/** The presenter for [ProfileActionChooserFragment]. */
+/** The presenter for [ProfileChooserFragment]. */
 @FragmentScope
 class ProfileChooserFragmentPresenterV1 @Inject constructor(
   private val fragment: Fragment,
@@ -102,19 +101,16 @@ class ProfileChooserFragmentPresenterV1 @Inject constructor(
   }
 
   private fun subscribeToWasProfileEverBeenAdded() {
-    wasProfileEverBeenAdded.observe(
-      activity,
-      Observer<Boolean> {
-        hasProfileEverBeenAddedValue.set(it)
-        val spanCount = if (it) {
-          activity.resources.getInteger(R.integer.profile_chooser_span_count)
-        } else {
-          activity.resources.getInteger(R.integer.profile_chooser_first_time_span_count)
-        }
-        val layoutManager = GridLayoutManager(activity, spanCount)
-        binding.profileRecyclerView.layoutManager = layoutManager
+    wasProfileEverBeenAdded.observe(activity) {
+      hasProfileEverBeenAddedValue.set(it)
+      val spanCount = if (it) {
+        activity.resources.getInteger(R.integer.profile_chooser_span_count)
+      } else {
+        activity.resources.getInteger(R.integer.profile_chooser_first_time_span_count)
       }
-    )
+      val layoutManager = GridLayoutManager(activity, spanCount)
+      binding.profileRecyclerView.layoutManager = layoutManager
+    }
   }
 
   private val wasProfileEverBeenAdded: LiveData<Boolean> by lazy {
@@ -130,7 +126,7 @@ class ProfileChooserFragmentPresenterV1 @Inject constructor(
     return when (wasProfileEverBeenAddedResult) {
       is AsyncResult.Failure -> {
         oppiaLogger.e(
-          "ProfileActionChooserFragment",
+          "ProfileChooserFragment",
           "Failed to retrieve the information on wasProfileEverBeenAdded",
           wasProfileEverBeenAddedResult.error
         )
@@ -246,22 +242,19 @@ class ProfileChooserFragmentPresenterV1 @Inject constructor(
 
   private fun loginToProfile(profile: Profile) {
     if (profile.pin.isNullOrBlank()) {
-      profileManagementController.loginToProfile(profile.id).toLiveData().observe(
-        fragment,
-        {
-          if (it is AsyncResult.Success) {
-            if (enableMultipleClassrooms.value) {
-              activity.startActivity(
-                ClassroomListActivity.createClassroomListActivity(activity, profile.id)
-              )
-            } else {
-              activity.startActivity(
-                HomeActivity.createHomeActivity(activity, profile.id)
-              )
-            }
+      profileManagementController.loginToProfile(profile.id).toLiveData().observe(fragment) {
+        if (it is AsyncResult.Success) {
+          if (enableMultipleClassrooms.value) {
+            activity.startActivity(
+              ClassroomListActivity.createClassroomListActivity(activity, profile.id)
+            )
+          } else {
+            activity.startActivity(
+              HomeActivity.createHomeActivity(activity, profile.id)
+            )
           }
         }
-      )
+      }
     } else {
       val pinPasswordIntent = PinPasswordActivity.createPinPasswordActivityIntent(
         activity,

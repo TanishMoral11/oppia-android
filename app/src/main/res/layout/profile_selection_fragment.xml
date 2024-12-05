@@ -22,7 +22,7 @@
       android:layout_marginBottom="@dimen/profile_chooser_fragment_profile_select_text_margin_top"
       android:overScrollMode="never"
       android:scrollbars="none"
-      app:layout_constraintBottom_toTopOf="@id/profile_chooser_setting_icon">
+      app:layout_constraintBottom_toTopOf="@id/profile_selection_setting_icon">
 
       <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/profile_selection_container"
@@ -65,10 +65,11 @@
     </androidx.core.widget.NestedScrollView>
 
     <ImageView
-      android:id="@+id/profile_chooser_setting_icon"
+      android:id="@+id/profile_selection_setting_icon"
       android:layout_width="@dimen/profile_selection_fragment_icon_size"
       android:layout_height="@dimen/profile_selection_fragment_icon_size"
-      android:layout_marginBottom="@dimen/profile_selection_fragment_icon_margin"
+      android:layout_marginStart="@dimen/profile_selection_fragment_settings_icon_margin_start"
+      android:layout_marginBottom="@dimen/profile_selection_fragment_settings_icon_margin_bottom"
       android:contentDescription="@string/setting_icon_content_description"
       android:onClick="@{(v) -> viewModel.onAdministratorControlsButtonClicked()}"
       android:paddingStart="@dimen/profile_selection_fragment_icon_padding"
@@ -81,7 +82,7 @@
     <TextView
       android:layout_width="0dp"
       android:layout_height="wrap_content"
-      android:layout_marginBottom="@dimen/profile_selection_fragment_icon_margin"
+      android:layout_marginBottom="@dimen/profile_selection_fragment_settings_icon_margin_bottom"
       android:fontFamily="sans-serif"
       android:gravity="center"
       android:minHeight="@dimen/profile_selection_fragment_view_min_size"
@@ -92,13 +93,13 @@
       android:textColor="@color/component_color_shared_primary_text_color"
       android:textSize="@dimen/profile_selection_fragment_profile_settings_size"
       app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintStart_toEndOf="@id/profile_chooser_setting_icon" />
+      app:layout_constraintStart_toEndOf="@id/profile_selection_setting_icon" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
       android:id="@+id/add_profile_button"
       android:layout_width="@dimen/profile_selection_fragment_icon_size"
       android:layout_height="@dimen/profile_selection_fragment_icon_size"
-      android:layout_marginEnd="@dimen/profile_selection_fragment_icon_margin"
+      android:layout_marginEnd="@dimen/profile_selection_fragment_add_profile_button_margin_end"
       android:contentDescription="@string/profile_selection_profile_icon_description"
       android:paddingStart="@dimen/profile_selection_fragment_icon_padding"
       android:paddingEnd="@dimen/profile_selection_fragment_icon_padding"
@@ -115,8 +116,8 @@
       android:layout_width="@dimen/profile_selection_fragment_prompt_width"
       android:layout_height="wrap_content"
       android:layout_gravity="center_vertical"
-      android:layout_marginEnd="@dimen/profile_selection_fragment_icon_margin"
-      android:layout_marginBottom="@dimen/profile_selection_fragment_icon_margin"
+      android:layout_marginEnd="@dimen/profile_selection_fragment_add_profile_button_margin_end"
+      android:layout_marginBottom="@dimen/profile_selection_fragment_prompt_margin_bottom"
       android:fontFamily="sans-serif-medium"
       android:gravity="center"
       android:minHeight="@dimen/profile_selection_fragment_view_min_size"

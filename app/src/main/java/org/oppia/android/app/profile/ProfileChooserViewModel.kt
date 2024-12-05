@@ -17,7 +17,7 @@ import org.oppia.android.util.data.DataProviders.Companion.toLiveData
 import org.oppia.android.util.locale.OppiaLocale
 import javax.inject.Inject
 
-/** The ViewModel for [ProfileActionChooserFragment]. */
+/** The ViewModel for [ProfileChooserFragment]. */
 @FragmentScope
 class ProfileChooserViewModel @Inject constructor(
   fragment: Fragment,

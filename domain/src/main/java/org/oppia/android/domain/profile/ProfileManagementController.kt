@@ -858,7 +858,7 @@ class ProfileManagementController @Inject constructor(
     profileId: ProfileId,
     profileType: ProfileType,
     avatarImagePath: Uri?,
-    colorRgb: Int?,
+    colorRgb: Int,
     newName: String,
     isAdmin: Boolean
   ): DataProvider<Any?> {
@@ -888,7 +888,7 @@ class ProfileManagementController @Inject constructor(
           ProfileAvatar.newBuilder().setAvatarImageUri(imageUri).build()
       } else {
         updatedProfile.avatar =
-          colorRgb?.let { color -> ProfileAvatar.newBuilder().setAvatarColorRgb(color).build() }
+          colorRgb.let { color -> ProfileAvatar.newBuilder().setAvatarColorRgb(color).build() }
       }
 
       if (profileType == ProfileType.PROFILE_TYPE_UNSPECIFIED) {

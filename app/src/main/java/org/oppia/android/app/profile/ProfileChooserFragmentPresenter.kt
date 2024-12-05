@@ -90,10 +90,12 @@ class ProfileChooserFragmentPresenter @Inject constructor(
       R.color.component_color_shared_profile_status_bar_color, activity, false
     )
 
-    binding = ProfileSelectionFragmentBinding.inflate(inflater, container, false).apply {
-      viewModel = chooserViewModel
-      lifecycleOwner = fragment
-    }
+    binding =
+      ProfileSelectionFragmentBinding.inflate(inflater, container, /* attachToRoot= */ false)
+        .apply {
+          viewModel = chooserViewModel
+          lifecycleOwner = fragment
+        }
 
     logProfileChooserEvent()
 
@@ -182,18 +184,15 @@ class ProfileChooserFragmentPresenter @Inject constructor(
   }
 
   private fun subscribeToWasProfileEverAdded() {
-    wasProfileEverAdded.observe(
-      activity,
-      {
-        val spanCount = if (it) {
-          activity.resources.getInteger(R.integer.profile_chooser_span_count)
-        } else {
-          activity.resources.getInteger(R.integer.profile_chooser_first_time_span_count)
-        }
-        val layoutManager = GridLayoutManager(activity, spanCount)
-        binding.profilesList?.layoutManager = layoutManager
+    wasProfileEverAdded.observe(activity) {
+      val spanCount = if (it) {
+        activity.resources.getInteger(R.integer.profile_chooser_span_count)
+      } else {
+        activity.resources.getInteger(R.integer.profile_chooser_first_time_span_count)
       }
-    )
+      val layoutManager = GridLayoutManager(activity, spanCount)
+      binding.profilesList?.layoutManager = layoutManager
+    }
   }
 
   private fun processWasProfileEverAddedResult(
@@ -251,7 +250,7 @@ class ProfileChooserFragmentPresenter @Inject constructor(
         AdminAuthActivity.createAdminAuthActivityIntent(
           activity,
           chooserViewModel.adminPin,
-          0,
+          profileId = 0,
           selectUniqueRandomColor(),
           AdminAuthEnum.PROFILE_ADD_PROFILE.value
         )
@@ -298,22 +297,19 @@ class ProfileChooserFragmentPresenter @Inject constructor(
 
   private fun logInToProfile(profile: Profile) {
     if (profile.pin.isNullOrBlank()) {
-      profileManagementController.loginToProfile(profile.id).toLiveData().observe(
-        fragment,
-        {
-          if (it is AsyncResult.Success) {
-            if (enableMultipleClassrooms.value) {
-              activity.startActivity(
-                ClassroomListActivity.createClassroomListActivity(activity, profile.id)
-              )
-            } else {
-              activity.startActivity(
-                HomeActivity.createHomeActivity(activity, profile.id)
-              )
-            }
+      profileManagementController.loginToProfile(profile.id).toLiveData().observe(fragment) {
+        if (it is AsyncResult.Success) {
+          if (enableMultipleClassrooms.value) {
+            activity.startActivity(
+              ClassroomListActivity.createClassroomListActivity(activity, profile.id)
+            )
+          } else {
+            activity.startActivity(
+              HomeActivity.createHomeActivity(activity, profile.id)
+            )
           }
         }
-      )
+      }
     } else {
       val pinPasswordIntent = PinPasswordActivity.createPinPasswordActivityIntent(
         activity,
