@@ -11,14 +11,7 @@ import android.text.style.LeadingMarginSpan
 import androidx.core.view.ViewCompat
 import org.oppia.android.util.R
 import org.oppia.android.util.locale.OppiaLocale
-import kotlin.math.max
 
-// TODO(#562): Add screenshot tests to check whether the drawing logic works correctly on all devices.
-
-/**
- * A version of [LeadingMarginSpan] that shows text inside the margin.
- * Reference: https://medium.com/swlh/making-nested-lists-with-android-spannables-in-kotlin-4ad00052912c
- */
 sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
   /** The parent list of this span, or null if it doesn't have one (that is, it's a root list). */
   protected abstract val parent: ListItemLeadingMarginSpan?
@@ -36,18 +29,16 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
     context: Context,
     private val indentationLevel: Int,
     private val displayLocale: OppiaLocale.DisplayLocale,
-    private val supportLtr: Boolean = false
   ) : ListItemLeadingMarginSpan() {
     private val resources = context.resources
     private val bulletRadius = resources.getDimensionPixelSize(R.dimen.bullet_radius)
-    private val spacingBeforeText = resources.getDimensionPixelSize(R.dimen.spacing_before_text)
-    private val spacingBeforeBullet = resources.getDimensionPixelSize(R.dimen.spacing_before_bullet)
 
     private val bulletDiameter by lazy { bulletRadius * 2 }
+    private val baseMargin = (16f * context.resources.displayMetrics.density).toInt()
+
     private val isRtl by lazy {
-      (displayLocale.getLayoutDirection() == ViewCompat.LAYOUT_DIRECTION_RTL) && !supportLtr
+      displayLocale.getLayoutDirection() == ViewCompat.LAYOUT_DIRECTION_RTL
     }
-    private val clipBounds by lazy { Rect() }
 
     override fun drawLeadingMargin(
       canvas: Canvas,
@@ -70,16 +61,14 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
         val previousStyle = paint.style
         val bulletDrawRadius = bulletRadius.toFloat()
 
-        val indentedX = parentAbsoluteLeadingMargin + spacingBeforeBullet
-        val bulletCenterLtrX = indentedX + bulletDrawRadius
-        val bulletCenterX = if (isRtl) {
-          // See https://stackoverflow.com/a/21845993/3689782 for 'right' property exclusivity.
-          val maxDrawX = if (canvas.getClipBounds(clipBounds)) {
-            clipBounds.right - 1
-          } else canvas.width - 1
-          maxDrawX - bulletCenterLtrX
-        } else bulletCenterLtrX
+        // Force left alignment
+        paint.textAlign = Paint.Align.LEFT
+
+        // Positioning calculation
+        val bulletCenterLtrX = x.toFloat() + baseMargin * (indentationLevel + 1)
+        val bulletCenterX = bulletCenterLtrX
         val bulletCenterY = (top + bottom) / 2f
+
         when (indentationLevel) {
           0 -> {
             // A solid circle is used for the outermost bullet.
@@ -112,7 +101,7 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
     }
 
     override fun getLeadingMargin(first: Boolean) =
-      bulletDiameter + spacingBeforeBullet + spacingBeforeText
+      baseMargin * (indentationLevel + 2)
   }
 
   /** A subclass of [LeadingMarginSpan] that shows nested list span for <ol> tags. */
@@ -121,21 +110,14 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
     context: Context,
     private val numberedItemPrefix: String,
     private val longestNumberedItemPrefix: String,
-    private val displayLocale: OppiaLocale.DisplayLocale,
-    private val supportLtr: Boolean = false
+    private val displayLocale: OppiaLocale.DisplayLocale
   ) : ListItemLeadingMarginSpan() {
     private val resources = context.resources
-    private val spacingBeforeText = resources.getDimensionPixelSize(R.dimen.spacing_before_text)
-    private val spacingBeforeNumberPrefix =
-      resources.getDimensionPixelSize(R.dimen.spacing_before_number_prefix)
+    private val baseMargin = (16f * context.resources.displayMetrics.density).toInt()
 
     // Try to use a computed margin, but otherwise guess if there's no guaranteed spacing.
     private var computedLeadingMargin =
-      2 * longestNumberedItemPrefix.length + spacingBeforeText
-
-    private val isRtl by lazy {
-      (displayLocale.getLayoutDirection() == ViewCompat.LAYOUT_DIRECTION_RTL) && !supportLtr
-    }
+      2 * longestNumberedItemPrefix.length + baseMargin
 
     override fun drawLeadingMargin(
       canvas: Canvas,
@@ -155,30 +137,24 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
       val isFirstCharacter = startCharOfSpan == start
 
       if (isFirstCharacter) {
+        // Force left alignment
+        paint.textAlign = Paint.Align.LEFT
+
         val textWidth = Rect().also {
           paint.getTextBounds(
             numberedItemPrefix, /* start= */ 0, /* end= */ numberedItemPrefix.length, it
           )
         }.width()
-        val longestTextWidth = Rect().also {
-          paint.getTextBounds(
-            longestNumberedItemPrefix,
-            /* start= */ 0,
-            /* end= */ longestNumberedItemPrefix.length,
-            it
-          )
-        }.width()
-        computedLeadingMargin = longestTextWidth + spacingBeforeNumberPrefix + spacingBeforeText
 
-        // Compute the prefix's start x value such that it is right-aligned with other numbers in
-        // the list.
-        val indentedX = parentAbsoluteLeadingMargin + spacingBeforeNumberPrefix
-        val endAlignedX = (max(textWidth, longestTextWidth) - textWidth) + indentedX
-        val prefixStartX = if (isRtl) canvas.width - endAlignedX - 1 else endAlignedX
-        canvas.drawText(numberedItemPrefix, prefixStartX.toFloat(), baseline.toFloat(), paint)
+        // Positioning calculation
+        val prefixStartX = x.toFloat() + baseMargin
+
+        // Draw the numbered prefix
+        canvas.drawText(numberedItemPrefix, prefixStartX, baseline.toFloat(), paint)
       }
     }
 
-    override fun getLeadingMargin(first: Boolean) = computedLeadingMargin
+    override fun getLeadingMargin(first: Boolean) =
+      baseMargin * 2
   }
 }

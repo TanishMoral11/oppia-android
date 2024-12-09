@@ -1,5 +1,9 @@
 package org.oppia.android.app.policies
 
+import android.graphics.Paint
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +17,7 @@ import org.oppia.android.databinding.PoliciesFragmentBinding
 import org.oppia.android.util.parser.html.HtmlParser
 import org.oppia.android.util.parser.html.PolicyType
 import javax.inject.Inject
+import org.oppia.android.util.locale.LeftAlignedSymbolsSpan
 
 /** The presenter for [PoliciesFragment]. */
 @FragmentScope
@@ -53,27 +58,46 @@ class PoliciesFragmentPresenter @Inject constructor(
       policyWebLink = resourceHandler.getStringInLocale(R.string.terms_of_service_web_link)
     }
 
-    binding.policyDescriptionTextView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
-    binding.policyDescriptionTextView.text = htmlParserFactory.create(
+    val parsedHtmlDescription = htmlParserFactory.create(
       policyOppiaTagActionListener = this,
-      displayLocale = resourceHandler.getDisplayLocale(),
-      supportLtr = true
+      displayLocale = resourceHandler.getDisplayLocale()
     ).parseOppiaHtml(
-      policyDescription,
-      binding.policyDescriptionTextView,
+      rawString = policyDescription,
+      htmlContentTextView = binding.policyDescriptionTextView,
       supportsLinks = true,
       supportsConceptCards = false
     )
 
-    binding.policyWebLinkTextView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+    binding.policyDescriptionTextView.apply {
+      layoutDirection = View.LAYOUT_DIRECTION_LTR
+      textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+      textDirection = View.TEXT_DIRECTION_LTR
+      setSingleLine(false)
+      setMaxLines(Int.MAX_VALUE)
+    }
+
+    val spannableString = SpannableString(parsedHtmlDescription)
+    parsedHtmlDescription.split("\n").forEachIndexed { lineIndex, line ->
+      val lineStart = parsedHtmlDescription.indexOf(line)
+      if (line.trimStart().startsWith("•")) {
+        val bulletIndex = lineStart + line.indexOf("•")
+        spannableString.setSpan(
+          LeftAlignedSymbolsSpan(),
+          bulletIndex,
+          bulletIndex + 1,
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+      }
+    }
+    binding.policyDescriptionTextView.text = spannableString
+
     binding.policyWebLinkTextView.text = htmlParserFactory.create(
       gcsResourceName = "",
       entityType = "",
       entityId = "",
       imageCenterAlign = false,
       customOppiaTagActionListener = null,
-      resourceHandler.getDisplayLocale(),
-      supportLtr = true
+      resourceHandler.getDisplayLocale()
     ).parseOppiaHtml(
       policyWebLink,
       binding.policyWebLinkTextView,
