@@ -255,54 +255,6 @@ class AudioFragmentTest {
     }
   }
 
-  /** Returns a matcher that matches view based on non-zero width and height. */
-  private class WithNonZeroDimensionsMatcher : TypeSafeMatcher<View>() {
-
-    override fun matchesSafely(target: View): Boolean {
-      val targetWidth = target.width
-      val targetHeight = target.height
-      return targetWidth > 0 && targetHeight > 0
-    }
-
-    override fun describeTo(description: Description) {
-      description.appendText("with non-zero width and height")
-    }
-  }
-
-  private fun waitForTheView(viewMatcher: Matcher<View>): ViewInteraction {
-    return onView(isRoot()).perform(waitForMatch(viewMatcher, 30000L))
-  }
-
-  private fun waitForMatch(viewMatcher: Matcher<View>, millis: Long): ViewAction {
-    return object : ViewAction {
-      override fun getDescription(): String {
-        return "wait for a specific view with matcher <$viewMatcher> during $millis millis."
-      }
-
-      override fun getConstraints(): Matcher<View> {
-        return isRoot()
-      }
-
-      override fun perform(uiController: UiController?, view: View?) {
-        checkNotNull(uiController)
-        uiController.loopMainThreadUntilIdle()
-        val startTime = System.currentTimeMillis()
-        val endTime = startTime + millis
-
-        do {
-          if (TreeIterables.breadthFirstViewTraversal(view).any { viewMatcher.matches(it) }) {
-            return
-          }
-          uiController.loopMainThreadForAtLeast(50)
-        } while (System.currentTimeMillis() < endTime)
-
-        // Couldn't match in time.
-        throw PerformException.Builder().withActionDescription(description)
-          .withViewDescription(HumanReadables.describe(view)).withCause(TimeoutException()).build()
-      }
-    }
-  }
-
   @Test
   fun testAudioFragment_openFragment_showsFragment() {
     addMediaInfo()
@@ -663,5 +615,52 @@ class AudioFragmentTest {
     }
 
     override fun getApplicationInjector(): ApplicationInjector = component
+  }
+  /** Returns a matcher that matches view based on non-zero width and height. */
+  private class WithNonZeroDimensionsMatcher : TypeSafeMatcher<View>() {
+
+    override fun matchesSafely(target: View): Boolean {
+      val targetWidth = target.width
+      val targetHeight = target.height
+      return targetWidth > 0 && targetHeight > 0
+    }
+
+    override fun describeTo(description: Description) {
+      description.appendText("with non-zero width and height")
+    }
+  }
+
+  private fun waitForTheView(viewMatcher: Matcher<View>): ViewInteraction {
+    return onView(isRoot()).perform(waitForMatch(viewMatcher, 30000L))
+  }
+
+  private fun waitForMatch(viewMatcher: Matcher<View>, millis: Long): ViewAction {
+    return object : ViewAction {
+      override fun getDescription(): String {
+        return "wait for a specific view with matcher <$viewMatcher> during $millis millis."
+      }
+
+      override fun getConstraints(): Matcher<View> {
+        return isRoot()
+      }
+
+      override fun perform(uiController: UiController?, view: View?) {
+        checkNotNull(uiController)
+        uiController.loopMainThreadUntilIdle()
+        val startTime = System.currentTimeMillis()
+        val endTime = startTime + millis
+
+        do {
+          if (TreeIterables.breadthFirstViewTraversal(view).any { viewMatcher.matches(it) }) {
+            return
+          }
+          uiController.loopMainThreadForAtLeast(50)
+        } while (System.currentTimeMillis() < endTime)
+
+        // Couldn't match in time.
+        throw PerformException.Builder().withActionDescription(description)
+          .withViewDescription(HumanReadables.describe(view)).withCause(TimeoutException()).build()
+      }
+    }
   }
 }
