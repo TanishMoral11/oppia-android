@@ -12,6 +12,12 @@ import androidx.core.view.ViewCompat
 import org.oppia.android.util.R
 import org.oppia.android.util.locale.OppiaLocale
 
+// TODO(#562): Add screenshot tests to check whether the drawing logic works correctly on all devices.
+
+/**
+ * A version of [LeadingMarginSpan] that shows text inside the margin.
+ * Reference: https://medium.com/swlh/making-nested-lists-with-android-spannables-in-kotlin-4ad00052912c
+ */
 sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
   /** The parent list of this span, or null if it doesn't have one (that is, it's a root list). */
   protected abstract val parent: ListItemLeadingMarginSpan?
