@@ -1,9 +1,7 @@
 package org.oppia.android.app.policies
 
-import android.graphics.Paint
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.TextPaint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,10 +12,10 @@ import org.oppia.android.app.model.PoliciesFragmentArguments
 import org.oppia.android.app.model.PolicyPage
 import org.oppia.android.app.translation.AppLanguageResourceHandler
 import org.oppia.android.databinding.PoliciesFragmentBinding
+import org.oppia.android.util.locale.LeftAlignedSymbolsSpan
 import org.oppia.android.util.parser.html.HtmlParser
 import org.oppia.android.util.parser.html.PolicyType
 import javax.inject.Inject
-import org.oppia.android.util.locale.LeftAlignedSymbolsSpan
 
 /** The presenter for [PoliciesFragment]. */
 @FragmentScope
