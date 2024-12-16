@@ -13,9 +13,9 @@ import org.oppia.android.app.model.PolicyPage
 import org.oppia.android.app.translation.AppLanguageResourceHandler
 import org.oppia.android.databinding.PoliciesFragmentBinding
 import org.oppia.android.util.parser.html.HtmlParser
+import org.oppia.android.util.parser.html.LeftAlignedSymbolsSpan
 import org.oppia.android.util.parser.html.PolicyType
 import javax.inject.Inject
-import org.oppia.android.util.parser.html.LeftAlignedSymbolsSpan
 
 /** The presenter for [PoliciesFragment]. */
 @FragmentScope
