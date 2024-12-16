@@ -1,4 +1,4 @@
-package org.oppia.android.util.locale
+package org.oppia.android.util.parser.html
 
 import android.graphics.Canvas
 import android.graphics.Paint
