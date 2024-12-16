@@ -4,8 +4,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.style.ReplacementSpan
 
-// Custom span to force LTR alignment for symbols as well
-// Custom span to force LTR alignment for all text including symbols
+/**
+ * Custom span to force LTR (left-to-right) alignment for all text,
+ * including symbols, regardless of the system's text direction.
+ */
 class LeftAlignedSymbolsSpan : ReplacementSpan() {
   override fun getSize(
     paint: Paint,

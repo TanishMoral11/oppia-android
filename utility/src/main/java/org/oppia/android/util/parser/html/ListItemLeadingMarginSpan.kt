@@ -143,15 +143,6 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
       val isFirstCharacter = startCharOfSpan == start
 
       if (isFirstCharacter) {
-        // Force left alignment
-        paint.textAlign = Paint.Align.LEFT
-
-        val textWidth = Rect().also {
-          paint.getTextBounds(
-            numberedItemPrefix, /* start= */ 0, /* end= */ numberedItemPrefix.length, it
-          )
-        }.width()
-
         // Positioning calculation
         val prefixStartX = x.toFloat() + baseMargin
 
