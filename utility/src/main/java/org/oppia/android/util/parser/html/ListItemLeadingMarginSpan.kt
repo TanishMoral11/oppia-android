@@ -119,7 +119,9 @@ sealed class ListItemLeadingMarginSpan : LeadingMarginSpan {
     private val displayLocale: OppiaLocale.DisplayLocale
   ) : ListItemLeadingMarginSpan() {
     private val resources = context.resources
-    private val baseMargin = context.resources.getDimensionPixelSize((R.dimen.spacing_before_number_prefix))
+    private val baseMargin =
+      context.resources.getDimensionPixelSize((R.dimen.spacing_before_number_prefix))
+
     // Try to use a computed margin, but otherwise guess if there's no guaranteed spacing.
     private var computedLeadingMargin =
       2 * longestNumberedItemPrefix.length + baseMargin
