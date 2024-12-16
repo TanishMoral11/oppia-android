@@ -3,7 +3,6 @@ package org.oppia.android.util.parser.html
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Rect
 import android.graphics.RectF
 import android.text.Layout
 import android.text.Spanned
