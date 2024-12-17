@@ -223,7 +223,7 @@ class DragAndDropSortInteractionViewModel private constructor(
     // To update the list
     (adapter as BindableAdapter<*>).setDataUnchecked(_choiceItems)
 
-    // *Trigger pending answer check* to re-enable submit button
+    // Trigger pending answer check to re-enable submit button
     checkPendingAnswerError(AnswerErrorCategory.REAL_TIME)
   }
 
@@ -251,19 +251,19 @@ class DragAndDropSortInteractionViewModel private constructor(
       dragDropInteractionContentViewModel.listSize = _choiceItems.size
     }
 
-    // *Update the list*
+    // Update the list
     (adapter as BindableAdapter<*>).setDataUnchecked(_choiceItems)
 
-    // *Trigger pending answer check* to re-enable submit button
+    // Trigger pending answer check* to re-enable submit button
     checkPendingAnswerError(AnswerErrorCategory.REAL_TIME)
   }
 
   private fun getSubmitTimeError(): DragAndDropSortInteractionError {
-    val hasItemsChanged = _originalChoiceItems.size != _choiceItems.size ||
+    val haveItemsChanged = _originalChoiceItems.size != _choiceItems.size ||
       _originalChoiceItems.zip(_choiceItems).any { (originalItem, currentItem) ->
         originalItem.htmlContent != currentItem.htmlContent
       }
-    return if (!hasItemsChanged) {
+    return if (!haveItemsChanged) {
       DragAndDropSortInteractionError.EMPTY_INPUT
     } else {
       DragAndDropSortInteractionError.VALID
