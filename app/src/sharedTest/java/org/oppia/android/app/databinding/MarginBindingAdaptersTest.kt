@@ -311,7 +311,6 @@ class MarginBindingAdaptersTest {
       return@runWithActivity textView
     }
 
-    // Verify that the margins are correctly set after method calls
     assertThat(textView.marginStart.toFloat()).isWithin(TOLERANCE).of(24f)
     assertThat(textView.marginEnd.toFloat()).isWithin(TOLERANCE).of(40f)
 
@@ -335,7 +334,6 @@ class MarginBindingAdaptersTest {
       return@runWithActivity textView
     }
 
-    // Verify that the margins are correctly set after method calls
     assertThat(textView.marginStart.toFloat()).isWithin(TOLERANCE).of(24f)
     assertThat(textView.marginEnd.toFloat()).isWithin(TOLERANCE).of(40f)
 
@@ -359,7 +357,6 @@ class MarginBindingAdaptersTest {
       return@runWithActivity textView
     }
 
-    // Verify that the margins are correctly set after method calls
     assertThat(textView.marginStart.toFloat()).isWithin(TOLERANCE).of(24f)
     assertThat(textView.marginEnd.toFloat()).isWithin(TOLERANCE).of(40f)
 
