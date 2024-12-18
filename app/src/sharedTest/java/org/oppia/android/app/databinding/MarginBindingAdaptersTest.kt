@@ -298,7 +298,7 @@ class MarginBindingAdaptersTest {
 
   @Config(qualifiers = "port")
   @Test
-  fun testMarginBindableAdapters_layoutParamsSettingPreservesMargins() {
+  fun testMarginBindableAdapters_setLayoutParams_preservesMargins() {
     val textView = activityRule.scenario.runWithActivity {
       val textView: TextView = it.findViewById(R.id.test_margin_text_view)
 
@@ -322,7 +322,7 @@ class MarginBindingAdaptersTest {
 
   @Config(qualifiers = "land")
   @Test
-  fun testMarginBindableAdapters_layoutParamsSettingPreservesMargins_landscape() {
+  fun testMarginBindableAdapters_landscapeMode_setLayoutParams_preservesMargins() {
     val textView = activityRule.scenario.runWithActivity {
       val textView: TextView = it.findViewById(R.id.test_margin_text_view)
 
@@ -346,7 +346,7 @@ class MarginBindingAdaptersTest {
 
   @Config(qualifiers = "sw600dp-port")
   @Test
-  fun testMarginBindableAdapters_layoutParamsSettingPreservesMargins_tablet() {
+  fun testMarginBindableAdapters_tabletMode_setLayoutParams_preservesMargins() {
     val textView = activityRule.scenario.runWithActivity {
       val textView: TextView = it.findViewById(R.id.test_margin_text_view)
 

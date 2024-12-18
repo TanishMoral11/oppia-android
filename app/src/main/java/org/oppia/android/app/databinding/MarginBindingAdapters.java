@@ -6,14 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MarginLayoutParamsCompat;
 import androidx.databinding.BindingAdapter;
 
-/**
- * Holds all custom binding adapters that set margin values.
- */
+/** Holds all custom binding adapters that set margin values. */
 public final class MarginBindingAdapters {
 
-  /**
-   * Sets the start margin for a view, accounting for RTL scenarios.
-   */
+  /** Sets the start margin for a view, accounting for RTL scenarios. */
   @BindingAdapter("layoutMarginStart")
   public static void setLayoutMarginStart(@NonNull View view, float marginStart) {
     if (view.getLayoutParams() instanceof MarginLayoutParams) {
@@ -23,9 +19,7 @@ public final class MarginBindingAdapters {
     }
   }
 
-  /**
-   * Sets the end margin for a view, accounting for RTL scenarios.
-   */
+  /** Sets the end margin for a view, accounting for RTL scenarios. */
   @BindingAdapter("layoutMarginEnd")
   public static void setLayoutMarginEnd(@NonNull View view, float marginEnd) {
     if (view.getLayoutParams() instanceof MarginLayoutParams) {
@@ -35,9 +29,7 @@ public final class MarginBindingAdapters {
     }
   }
 
-  /**
-   * Used to set a margin-top for views.
-   */
+  /** Used to set a margin-top for views. */
   @BindingAdapter("layoutMarginTop")
   public static void setLayoutMarginTop(@NonNull View view, float marginTop) {
     if (view.getLayoutParams() instanceof MarginLayoutParams) {
@@ -47,9 +39,7 @@ public final class MarginBindingAdapters {
     }
   }
 
-  /**
-   * Used to set a margin-bottom for views.
-   */
+  /** Used to set a margin-bottom for views. */
   @BindingAdapter("layoutMarginBottom")
   public static void setLayoutMarginBottom(@NonNull View view, float marginBottom) {
     if (view.getLayoutParams() instanceof MarginLayoutParams) {
